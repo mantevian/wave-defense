@@ -44,7 +44,7 @@ public final class WdActive {
     private final MutablePlayerSet participants;
     private final WdSpawnLogic spawnLogic;
     public final WdWaveManager waveManager;
-    public final HashMap<PlayerRef, WdPlayerProperties> players = new HashMap<>();
+    public final HashMap<PlayerRef, WdPlayerStats> players = new HashMap<>();
     private final Set<BlockPos> openedChests = new HashSet<>();
     public final WdBar bar;
 
@@ -299,7 +299,7 @@ public final class WdActive {
         player.inventory.armor.set(1, ItemStackBuilder.of(Items.CHAINMAIL_LEGGINGS).setUnbreakable().build());
         player.inventory.armor.set(0, ItemStackBuilder.of(Items.CHAINMAIL_BOOTS).setUnbreakable().build());
 
-        players.put(PlayerRef.of(player), new WdPlayerProperties());
+        players.put(PlayerRef.of(player), new WdPlayerStats());
     }
 
     private void eliminatePlayer(ServerPlayerEntity player) {

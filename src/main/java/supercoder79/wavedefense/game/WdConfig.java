@@ -4,7 +4,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import xyz.nucleoid.plasmid.game.config.PlayerConfig;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public final class WdConfig {
+
     public static final Codec<WdConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             PlayerConfig.CODEC.fieldOf("players").forGetter(config -> config.playerConfig),
             Path.CODEC.fieldOf("path").forGetter(config -> config.path),
@@ -13,19 +17,19 @@ public final class WdConfig {
             Codec.DOUBLE.fieldOf("max_wave_spacing").forGetter(config -> config.maxWaveSpacing),
             MonsterSpawns.CODEC.fieldOf("monster_spawns").forGetter(config -> config.monsterSpawns),
             MonsterSpawnChoices.CODEC.fieldOf("monster_spawn_choices").forGetter(config -> config.monsterSpawnChoices),
-            Shop.CODEC.fieldOf("shop").forGetter(config -> config.shop)
+            Codec.list(ShopEntry.CODEC).fieldOf("shop").forGetter(config -> config.shop)
     ).apply(instance, (playerConfig1, path1, spawnRadius1, minWaveSpacing1, maxWaveSpacing1, monsterSpawns1, monsterSpawnChoices1, shop1) -> new WdConfig(playerConfig1, path1, monsterSpawns1, monsterSpawnChoices1, shop1, spawnRadius1, minWaveSpacing1, maxWaveSpacing1)));
 
     public final PlayerConfig playerConfig;
     public final Path path;
     public final MonsterSpawns monsterSpawns;
     public final MonsterSpawnChoices monsterSpawnChoices;
-    public final Shop shop;
+    public final List<ShopEntry> shop;
     public final int spawnRadius;
     public final double minWaveSpacing;
     public final double maxWaveSpacing;
 
-    public WdConfig(PlayerConfig playerConfig, Path path, MonsterSpawns monsterSpawns, MonsterSpawnChoices monsterSpawnChoices, Shop shop, int spawnRadius, double minWaveSpacing, double maxWaveSpacing) {
+    public WdConfig(PlayerConfig playerConfig, Path path, MonsterSpawns monsterSpawns, MonsterSpawnChoices monsterSpawnChoices, List<ShopEntry> shop, int spawnRadius, double minWaveSpacing, double maxWaveSpacing) {
         this.playerConfig = playerConfig;
         this.path = path;
         this.monsterSpawns = monsterSpawns;
@@ -108,141 +112,112 @@ public final class WdConfig {
         }
     }
 
-    public static final class Shop {
-        public static final Codec<Shop> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                SwordType.CODEC.fieldOf("sword_type").forGetter(config -> config.swordType),
-                ArmorType.CODEC.fieldOf("armor_type").forGetter(config -> config.armorType),
-                Item.CODEC.fieldOf("bread").forGetter(config -> config.bread),
-                Item.CODEC.fieldOf("steak").forGetter(config -> config.steak),
-                Item.CODEC.fieldOf("golden_carrot").forGetter(config -> config.goldenCarrot),
-                Item.CODEC.fieldOf("golden_apple").forGetter(config -> config.goldenApple),
-                Item.CODEC.fieldOf("arrow").forGetter(config -> config.arrow),
-                Item.CODEC.fieldOf("healing_potion").forGetter(config -> config.healingPotion),
-                Item.CODEC.fieldOf("harming_potion").forGetter(config -> config.harmingPotion),
-                Item.CODEC.fieldOf("swiftness_potion").forGetter(config -> config.swiftnessPotion),
-                Item.CODEC.fieldOf("regeneration_potion").forGetter(config -> config.regenerationPotion),
-                Enchantment.CODEC.fieldOf("sharpness").forGetter(config -> config.sharpness),
-                Enchantment.CODEC.fieldOf("power").forGetter(config -> config.power),
-                Enchantment.CODEC.fieldOf("piercing").forGetter(config -> config.piercing),
-                Enchantment.CODEC.fieldOf("protection").forGetter(config -> config.protection),
-                ThreeLevelEnchantment.CODEC.fieldOf("quick_charge").forGetter(config -> config.quickCharge)
-        ).apply(instance, Shop::new));
+    public static class ShopEntry {
+        public static final Codec<ShopEntry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.STRING.optionalFieldOf("name", "").forGetter(config -> config.name),
+                Codec.STRING.optionalFieldOf("description", "").forGetter(config -> config.description),
+                ShopEntryCost.CODEC.optionalFieldOf("cost", new ShopEntryCost("none", "iron", -1, -1, -1, new ArrayList<>())).forGetter(config -> config.cost),
+                ShopItem.CODEC.optionalFieldOf("item", new ShopItem("air", 0)).forGetter(config -> config.item),
+                ShopEnchantment.CODEC.optionalFieldOf("enchantment", new ShopEnchantment("none", "none", 0)).forGetter(config -> config.enchantment),
+                Codec.STRING.optionalFieldOf("upgrade", "").forGetter(config -> config.itemToUpgrade),
+                Codec.STRING.optionalFieldOf("display", "light_gray_stained_glass_pane").forGetter(config -> config.display),
+                Codec.STRING.optionalFieldOf("potion", "").forGetter(config -> config.potion)
+        ).apply(instance, ShopEntry::new));
 
-        public final SwordType swordType;
-        public final ArmorType armorType;
-        public final Item bread;
-        public final Item steak;
-        public final Item goldenCarrot;
-        public final Item goldenApple;
-        public final Item arrow;
-        public final Item healingPotion;
-        public final Item harmingPotion;
-        public final Item swiftnessPotion;
-        public final Item regenerationPotion;
-        public final Enchantment sharpness;
-        public final Enchantment power;
-        public final Enchantment piercing;
-        public final Enchantment protection;
-        public final ThreeLevelEnchantment quickCharge;
+        public final String name;
+        public final String description;
+        public final ShopEntryCost cost;
+        public final ShopItem item;
+        public final ShopEnchantment enchantment;
+        public final String itemToUpgrade;
+        public final String display;
+        public final String potion;
 
-        public Shop(SwordType swordType, ArmorType armorType, Item bread, Item steak, Item goldenCarrot, Item goldenApple, Item arrow, Item healingPotion, Item harmingPotion, Item swiftnessPotion, Item regenerationPotion, Enchantment sharpness, Enchantment power, Enchantment piercing, Enchantment protection, ThreeLevelEnchantment quickCharge) {
-            this.swordType = swordType;
-            this.armorType = armorType;
-            this.bread = bread;
-            this.steak = steak;
-            this.goldenCarrot = goldenCarrot;
-            this.goldenApple = goldenApple;
-            this.arrow = arrow;
-            this.healingPotion = healingPotion;
-            this.harmingPotion = harmingPotion;
-            this.swiftnessPotion = swiftnessPotion;
-            this.regenerationPotion = regenerationPotion;
-            this.sharpness = sharpness;
-            this.power = power;
-            this.piercing = piercing;
-            this.protection = protection;
-            this.quickCharge = quickCharge;
+        public ShopEntry(String name, String description, ShopEntryCost cost, ShopItem item, ShopEnchantment enchantment, String itemToUpgrade, String display, String potion) {
+            this.name = name;
+            this.description = description;
+            this.cost = cost;
+            this.item = item;
+            this.enchantment = enchantment;
+            this.itemToUpgrade = itemToUpgrade;
+            this.display = display;
+            this.potion = potion;
         }
+    }
 
-        static class SwordType {
-            public static final Codec<SwordType> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                    Codec.INT.fieldOf("diamond").forGetter(config -> config.diamond),
-                    Codec.INT.fieldOf("netherite").forGetter(config -> config.netherite)
-            ).apply(instance, SwordType::new));
+    public static class ShopEntryCost {
+        public static final Codec<ShopEntryCost> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.STRING.fieldOf("type").forGetter(config -> config.type),
+                Codec.STRING.optionalFieldOf("currency", "iron").forGetter(config -> config.currency),
+                Codec.INT.optionalFieldOf("cost", -1).forGetter(config -> config.cost),
+                Codec.INT.optionalFieldOf("base", 0).forGetter(config -> config.base),
+                Codec.DOUBLE.optionalFieldOf("scale", 0d).forGetter(config -> config.scale),
+                Codec.list(ShopSubEntryCost.CODEC).optionalFieldOf("levels", new ArrayList<>()).forGetter(config -> config.levels)
+        ).apply(instance, ShopEntryCost::new));
 
-            public final int diamond;
-            public final int netherite;
+        public final String type;
+        public final String currency;
+        public final int cost;
+        public final int base;
+        public final double scale;
+        public final List<ShopSubEntryCost> levels;
 
-            public SwordType(int diamond, int netherite) {
-                this.diamond = diamond;
-                this.netherite = netherite;
-            }
+        public ShopEntryCost(String type, String currency, int cost, int base, double scale, List<ShopSubEntryCost> levels) {
+            this.cost = cost;
+            this.type = type;
+            this.currency = currency;
+            this.base = base;
+            this.scale = scale;
+            this.levels = levels;
         }
+    }
 
-        static class ArmorType {
-            public static final Codec<ArmorType> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                    Codec.INT.fieldOf("iron").forGetter(config -> config.iron),
-                    Codec.INT.fieldOf("diamond").forGetter(config -> config.diamond),
-                    Codec.INT.fieldOf("netherite").forGetter(config -> config.netherite)
-            ).apply(instance, ArmorType::new));
+    public static class ShopSubEntryCost {
+        public static final Codec<ShopSubEntryCost> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.STRING.fieldOf("currency").forGetter(config -> config.currency),
+                Codec.INT.optionalFieldOf("cost", -1).forGetter(config -> config.cost)
+        ).apply(instance, ShopSubEntryCost::new));
 
-            public final int iron;
-            public final int diamond;
-            public final int netherite;
+        public final String currency;
+        public final int cost;
 
-            public ArmorType(int iron, int diamond, int netherite) {
-                this.iron = iron;
-                this.diamond = diamond;
-                this.netherite = netherite;
-            }
+        public ShopSubEntryCost(String currency, int cost) {
+            this.cost = cost;
+            this.currency = currency;
         }
+    }
 
-        static class Item {
-            public static final Codec<Item> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                    Codec.INT.fieldOf("count").forGetter(config -> config.count),
-                    Codec.INT.fieldOf("cost").forGetter(config -> config.cost)
-            ).apply(instance, Item::new));
+    public static class ShopEnchantment {
+        public static final Codec<ShopEnchantment> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.STRING.fieldOf("target").forGetter(config -> config.target),
+                Codec.STRING.fieldOf("enchantment").forGetter(config -> config.enchantment),
+                Codec.INT.optionalFieldOf("limit", -1).forGetter(config -> config.limit)
+        ).apply(instance, ShopEnchantment::new));
 
-            public final int count;
-            public final int cost;
+        public final String target;
+        public final String enchantment;
+        public final int limit;
 
-            public Item(int count, int cost) {
-                this.count = count;
-                this.cost = cost;
-            }
+        public ShopEnchantment(String target, String enchantment, int limit) {
+            this.target = target;
+            this.enchantment = enchantment;
+            this.limit = limit;
         }
+    }
 
-        static class Enchantment {
-            public static final Codec<Enchantment> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                    Codec.INT.fieldOf("base").forGetter(config -> config.base),
-                    Codec.DOUBLE.fieldOf("scale").forGetter(config -> config.scale)
-            ).apply(instance, Enchantment::new));
+    public static class ShopItem {
+        public static final Codec<ShopItem> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.STRING.fieldOf("item").forGetter(config -> config.item),
+                Codec.INT.optionalFieldOf("count", 1).forGetter(config -> config.count)
+        ).apply(instance, ShopItem::new));
 
-            public final int base;
-            public final double scale;
+        public final String item;
+        public final int count;
 
-            public Enchantment(int base, double scale) {
-                this.base = base;
-                this.scale = scale;
-            }
-        }
+        public ShopItem(String item, int count) {
 
-        static class ThreeLevelEnchantment {
-            public static final Codec<ThreeLevelEnchantment> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                    Codec.INT.fieldOf("1").forGetter(config -> config.lvl1),
-                    Codec.INT.fieldOf("2").forGetter(config -> config.lvl2),
-                    Codec.INT.fieldOf("3").forGetter(config -> config.lvl3)
-            ).apply(instance, ThreeLevelEnchantment::new));
-
-            public final int lvl1;
-            public final int lvl2;
-            public final int lvl3;
-
-            public ThreeLevelEnchantment(int lvl1, int lvl2, int lvl3) {
-                this.lvl1 = lvl1;
-                this.lvl2 = lvl2;
-                this.lvl3 = lvl3;
-            }
+            this.item = item;
+            this.count = count;
         }
     }
 }

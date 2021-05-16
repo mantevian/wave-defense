@@ -6,10 +6,14 @@ import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.*;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.potion.PotionUtil;
 import net.minecraft.potion.Potions;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 import xyz.nucleoid.plasmid.shop.Cost;
 import xyz.nucleoid.plasmid.shop.ShopEntry;
 import xyz.nucleoid.plasmid.shop.ShopUi;
@@ -17,381 +21,244 @@ import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 import xyz.nucleoid.plasmid.util.ItemUtil;
 import xyz.nucleoid.plasmid.util.PlayerRef;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
 public final class WdItemShop {
     public static ShopUi create(ServerPlayerEntity player, WdActive game) {
-        WdPlayerProperties properties = game.players.get(PlayerRef.of(player));
-        WdConfig.Shop config = game.config.shop;
+        List<WdConfig.ShopEntry> entries = game.config.shop;
 
         return ShopUi.create(new LiteralText("Item Shop"), shop -> {
-            String swordText = "Replaces your sword with a Diamond one";
-            Item sword = Items.IRON_SWORD;
-            Cost swordCost = Cost.ofGold(config.swordType.diamond);
+            for (WdConfig.ShopEntry entry : entries) {
+                ItemStack displayItem = new ItemStack(Registry.ITEM.get(id(entry.display)));
 
-            int sharpness = properties.sharpness;
-            int power = properties.power;
-            int piercing = properties.piercing;
-            int helmetProtection = properties.helmetProtection;
-            int chestplateProtection = properties.chestplateProtection;
-            int leggingsProtection = properties.leggingsProtection;
-            int bootsProtection = properties.bootsProtection;
-            int helmetLevel = properties.helmetLevel;
-            int chestplateLevel = properties.chestplateLevel;
-            int leggingsLevel = properties.leggingsLevel;
-            int bootsLevel = properties.bootsLevel;
-            int swordLevel = properties.swordLevel;
-            int quickCharge = properties.quickChargeLevel;
+                if (entry.display.equals("sword") || entry.display.equals("helmet") || entry.display.equals("chestplate") || entry.display.equals("leggings") || entry.display.equals("boots")) {
+                    displayItem = getFirstInInventory(player, i -> i.getItem().toString().contains(entry.display));
+                }
 
-            if (swordLevel == 2) {
-                swordText = "Replaces your sword with a Netherite one";
-                sword = Items.DIAMOND_SWORD;
-                swordCost = Cost.ofGold(config.swordType.netherite);
-            } else if (swordLevel >= 3) {
-                swordText = "MAX LEVEL REACHED";
-                sword = Items.NETHERITE_SWORD;
-                swordCost = Cost.no();
-            }
+                ItemStack itemToGive = new ItemStack(Items.AIR);
+                ItemStack itemToEnchant = new ItemStack(Items.AIR);
+                ItemStack itemToUpgrade = new ItemStack(Items.AIR);
+                ItemStack itemToReplaceWith = new ItemStack(Items.AIR);
 
+                int currentLevel = 0;
+                boolean canBuy = true;
 
-            String helmetText = "Replaces your helmet with an Iron one";
-            Item helmet = Items.CHAINMAIL_HELMET;
-            Cost helmetCost = Cost.ofIron(4);
+                if (entry.item != null) {
+                    itemToGive = new ItemStack(Registry.ITEM.get(id(entry.item.item)), entry.item.count);
 
-            if (helmetLevel == 1) {
-                helmetText = "Replaces your helmet with a Diamond one";
-                helmet = Items.IRON_HELMET;
-                helmetCost = Cost.ofGold(config.armorType.diamond);
-            } else if (helmetLevel == 2) {
-                helmetText = "Replaces your helmet with a Netherite one";
-                helmet = Items.DIAMOND_HELMET;
-                helmetCost = Cost.ofGold(config.armorType.netherite);
-            } else if (helmetLevel >= 3) {
-                helmetText = "MAX LEVEL REACHED";
-                helmet = Items.NETHERITE_HELMET;
-                helmetCost = Cost.no();
-            }
+                    if (entry.potion != null) {
+                        CompoundTag potionTag = new CompoundTag();
+                        potionTag.put("Potion", StringTag.of(entry.potion));
+                        itemToGive.setTag(potionTag);
+                    }
 
+                    if (!entry.item.item.equals("air")) {
+                        displayItem = itemToGive;
+                    }
+                }
 
-            String chestplateText = "Replaces your chestplate with an Iron one";
-            Item chestplate = Items.CHAINMAIL_CHESTPLATE;
-            Cost chestplateCost = Cost.ofGold(config.armorType.iron);
+                if (entry.itemToUpgrade != null) {
+                    if (entry.itemToUpgrade.equals("sword") || entry.itemToUpgrade.equals("helmet") || entry.itemToUpgrade.equals("chestplate") || entry.itemToUpgrade.equals("leggings") || entry.itemToUpgrade.equals("boots")) {
+                        itemToUpgrade = getFirstInInventory(player, i -> i.getItem().toString().contains(entry.itemToUpgrade));
+                        String name = itemToUpgrade.getItem().toString().replace("minecraft:", "");
 
-            if (chestplateLevel == 1) {
-                chestplateText = "Replaces your chestplate with a Diamond one";
-                chestplate = Items.IRON_CHESTPLATE;
-                chestplateCost = Cost.ofGold(config.armorType.diamond);
-            } else if (chestplateLevel == 2) {
-                chestplateText = "Replaces your chestplate with a Netherite one";
-                chestplate = Items.DIAMOND_CHESTPLATE;
-                chestplateCost = Cost.ofGold(config.armorType.netherite);
-            } else if (chestplateLevel >= 3) {
-                chestplateText = "MAX LEVEL REACHED";
-                chestplate = Items.NETHERITE_CHESTPLATE;
-                chestplateCost = Cost.no();
-            }
-
-
-            String leggingsText = "Replaces your leggings with Iron ones";
-            Item leggings = Items.CHAINMAIL_LEGGINGS;
-            Cost leggingsCost = Cost.ofGold(config.armorType.iron);
-
-            if (leggingsLevel == 1) {
-                leggingsText = "Replaces your leggings with Diamond ones";
-                leggings = Items.IRON_LEGGINGS;
-                leggingsCost = Cost.ofGold(config.armorType.diamond);
-            } else if (leggingsLevel == 2) {
-                leggingsText = "Replaces your leggings with Netherite ones";
-                leggings = Items.DIAMOND_LEGGINGS;
-                leggingsCost = Cost.ofGold(config.armorType.netherite);
-            } else if (leggingsLevel >= 3) {
-                leggingsText = "MAX LEVEL REACHED";
-                leggings = Items.NETHERITE_LEGGINGS;
-                leggingsCost = Cost.no();
-            }
-
-
-            String bootsText = "Replaces your boots with Iron ones";
-            Item boots = Items.CHAINMAIL_BOOTS;
-            Cost bootsCost = Cost.ofGold(config.armorType.iron);
-
-            if (bootsLevel == 1) {
-                bootsText = "Replaces your boots with Diamond ones";
-                boots = Items.IRON_BOOTS;
-                bootsCost = Cost.ofGold(config.armorType.diamond);
-            } else if (bootsLevel == 2) {
-                bootsText = "Replaces your boots with Netherite ones";
-                boots = Items.DIAMOND_BOOTS;
-                bootsCost = Cost.ofGold(config.armorType.netherite);
-            } else if (bootsLevel >= 3) {
-                bootsText = "MAX LEVEL REACHED";
-                boots = Items.NETHERITE_BOOTS;
-                bootsCost = Cost.no();
-            }
-
-            shop.add(ShopEntry.ofIcon(sword)
-                    .withName(new LiteralText("Upgrade Sword"))
-                    .addLore(new LiteralText(swordText))
-                    .withCost(swordCost)
-                    .onBuy(p -> {
-                        properties.swordLevel++;
-                        switch (swordLevel) {
-                            case 1:
-                                replaceItem(player, stack -> stack.getItem().equals(Items.IRON_SWORD), ItemStackBuilder.of(Items.DIAMOND_SWORD).setUnbreakable().build());
+                        switch (name) {
+                            case "iron_sword":
+                                currentLevel = 0;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.DIAMOND_SWORD).setUnbreakable().build();
                                 break;
-                            case 2:
-                                replaceItem(player, stack -> stack.getItem().equals(Items.DIAMOND_SWORD), ItemStackBuilder.of(Items.NETHERITE_SWORD).setUnbreakable().build());
+
+                            case "diamond_sword":
+                                currentLevel = 1;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_SWORD).setUnbreakable().build();
                                 break;
-                        }
-                    })
-            );
 
-            shop.add(ShopEntry.ofIcon(Items.ENCHANTED_BOOK)
-                    .withName(new LiteralText("Sword Sharpness " + (sharpness + 1)))
-                    .addLore(new LiteralText("Increases the sharpness level of your sword"))
-                    .withCost(Cost.ofIron((sharpness + 1) * config.sharpness.base + 4 * (int) (Math.max(0, Math.pow(sharpness - 2, config.sharpness.scale)))))
-                    .onBuy(p -> {
-                        properties.sharpness++;
-                        applyEnchantments(player, stack -> stack.getItem() instanceof SwordItem, Enchantments.SHARPNESS, sharpness + 1);
-                    })
-            );
-
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-
-            shop.add(ShopEntry.ofIcon(Items.BOW)
-                    .withName(new LiteralText("Bow Power " + (power + 1)))
-                    .addLore(new LiteralText("Increases the power level of your bow"))
-                    .withCost(power >= 5 ? Cost.no() : Cost.ofIron((int) (Math.pow(config.power.scale, power) * config.power.base)))
-                    .onBuy(p -> {
-                        properties.power++;
-                        applyEnchantments(player, stack -> stack.getItem() instanceof BowItem, Enchantments.POWER, power + 1);
-                    })
-            );
-
-            shop.add(ShopEntry.ofIcon(Items.CROSSBOW)
-                    .withName(new LiteralText("Crossbow Piercing " + (piercing + 1)))
-                    .addLore(new LiteralText("Increases the piercing level of your crossbow"))
-                    .withCost(piercing >= 5 ? Cost.no() : Cost.ofIron((int) (Math.pow(config.piercing.scale, piercing) * config.piercing.base)))
-                    .onBuy(p -> {
-                        properties.piercing++;
-                        applyEnchantments(player, stack -> stack.getItem() instanceof CrossbowItem, Enchantments.PIERCING, piercing + 1);
-                    })
-            );
-
-            shop.addItem(ItemStackBuilder.of(Items.ARROW).setCount(config.arrow.count).build(), Cost.ofIron(config.arrow.cost));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-
-            shop.add(ShopEntry.ofIcon(helmet)
-                    .withName(new LiteralText("Upgrade Helmet"))
-                    .addLore(new LiteralText(helmetText))
-                    .withCost(helmetCost)
-                    .onBuy(p -> {
-                        properties.helmetLevel++;
-                        switch (helmetLevel) {
-                            case 0:
-                                replaceItem(player, stack -> stack.getItem().equals(Items.CHAINMAIL_HELMET), ItemStackBuilder.of(Items.IRON_HELMET).setUnbreakable().build());
+                            case "netherite_sword":
+                                currentLevel = 2;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_SWORD).setUnbreakable().build();
                                 break;
-                            case 1:
-                                replaceItem(player, stack -> stack.getItem().equals(Items.IRON_HELMET), ItemStackBuilder.of(Items.DIAMOND_HELMET).setUnbreakable().build());
+
+
+                            case "chainmail_helmet":
+                                currentLevel = 0;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.IRON_HELMET).setUnbreakable().build();
                                 break;
-                            case 2:
-                                replaceItem(player, stack -> stack.getItem().equals(Items.DIAMOND_HELMET), ItemStackBuilder.of(Items.NETHERITE_HELMET).setUnbreakable().build());
+
+                            case "iron_helmet":
+                                currentLevel = 1;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.DIAMOND_HELMET).setUnbreakable().build();
+                                break;
+
+                            case "diamond_helmet":
+                                currentLevel = 2;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_HELMET).setUnbreakable().build();
+                                break;
+
+                            case "netherite_helmet":
+                                currentLevel = 3;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_HELMET).setUnbreakable().build();
+                                break;
+
+
+                            case "chainmail_chestplate":
+                                currentLevel = 0;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.IRON_CHESTPLATE).setUnbreakable().build();
+                                break;
+
+                            case "iron_chestplate":
+                                currentLevel = 1;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.DIAMOND_CHESTPLATE).setUnbreakable().build();
+                                break;
+
+                            case "diamond_chestplate":
+                                currentLevel = 2;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_CHESTPLATE).setUnbreakable().build();
+                                break;
+
+                            case "netherite_chestplate":
+                                currentLevel = 3;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_CHESTPLATE).setUnbreakable().build();
+                                break;
+
+
+                            case "chainmail_leggings":
+                                currentLevel = 0;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.IRON_LEGGINGS).setUnbreakable().build();
+                                break;
+
+                            case "iron_leggings":
+                                currentLevel = 1;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.DIAMOND_LEGGINGS).setUnbreakable().build();
+                                break;
+
+                            case "diamond_leggings":
+                                currentLevel = 2;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_LEGGINGS).setUnbreakable().build();
+                                break;
+
+                            case "netherite_leggings":
+                                currentLevel = 3;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_LEGGINGS).setUnbreakable().build();
+                                break;
+
+
+                            case "chainmail_boots":
+                                currentLevel = 0;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.IRON_BOOTS).setUnbreakable().build();
+                                break;
+
+                            case "iron_boots":
+                                currentLevel = 1;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.DIAMOND_BOOTS).setUnbreakable().build();
+                                break;
+
+                            case "diamond_boots":
+                                currentLevel = 2;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_BOOTS).setUnbreakable().build();
+                                break;
+
+                            case "netherite_boots":
+                                currentLevel = 3;
+                                itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_BOOTS).setUnbreakable().build();
                                 break;
                         }
-                    })
-            );
+                    }
+                }
 
-            shop.add(ShopEntry.ofIcon(Items.ENCHANTED_BOOK)
-                    .withName(new LiteralText("Helmet Protection " + (helmetProtection + 1)))
-                    .addLore(new LiteralText("Increases the protection level of your helmet"))
-                    .withCost(helmetProtection >= 4 ? Cost.no() : Cost.ofIron((int) (Math.pow(config.protection.scale, helmetProtection) * config.protection.base)))
-                    .onBuy(p -> {
-                        properties.helmetProtection++;
-                        applyEnchantments(player, stack -> stack.getItem() instanceof ArmorItem && ((ArmorItem) stack.getItem()).getSlotType().equals(EquipmentSlot.HEAD), Enchantments.PROTECTION, helmetProtection + 1);
-                    })
-            );
+                if (entry.enchantment != null) {
+                    if (entry.enchantment.target.equals("sword") || entry.enchantment.target.equals("helmet") || entry.enchantment.target.equals("chestplate") || entry.enchantment.target.equals("leggings") || entry.enchantment.target.equals("boots") || entry.enchantment.target.equals("bow") || entry.enchantment.target.equals("crossbow")) {
+                        itemToEnchant = getFirstInInventory(player, i -> i.getItem().toString().contains(entry.enchantment.target));
+                        currentLevel = EnchantmentHelper.getLevel(Registry.ENCHANTMENT.get(id(entry.enchantment.enchantment)), itemToEnchant);
 
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-
-            shop.addItem(new ItemStack(Items.BREAD, config.bread.count), Cost.ofIron(config.bread.cost));
-            shop.addItem(new ItemStack(Items.COOKED_BEEF, config.steak.count), Cost.ofIron(config.steak.cost));
-            shop.addItem(new ItemStack(Items.GOLDEN_CARROT, config.goldenCarrot.count), Cost.ofIron(config.goldenCarrot.cost));
-            shop.addItem(new ItemStack(Items.GOLDEN_APPLE, config.goldenApple.count), Cost.ofIron(config.goldenApple.cost));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-
-            shop.add(ShopEntry.ofIcon(chestplate)
-                    .withName(new LiteralText("Upgrade Chestplate"))
-                    .addLore(new LiteralText(chestplateText))
-                    .withCost(chestplateCost)
-                    .onBuy(p -> {
-                        properties.chestplateLevel++;
-                        switch (chestplateLevel) {
-                            case 0:
-                                replaceItem(player, stack -> stack.getItem().equals(Items.CHAINMAIL_CHESTPLATE), ItemStackBuilder.of(Items.IRON_CHESTPLATE).setUnbreakable().build());
-                                break;
-                            case 1:
-                                replaceItem(player, stack -> stack.getItem().equals(Items.IRON_CHESTPLATE), ItemStackBuilder.of(Items.DIAMOND_CHESTPLATE).setUnbreakable().build());
-                                break;
-                            case 2:
-                                replaceItem(player, stack -> stack.getItem().equals(Items.DIAMOND_CHESTPLATE), ItemStackBuilder.of(Items.NETHERITE_CHESTPLATE).setUnbreakable().build());
-                                break;
+                        if (entry.enchantment.limit > 0 && currentLevel >= entry.enchantment.limit) {
+                            canBuy = false;
                         }
-                    })
-            );
 
-            shop.add(ShopEntry.ofIcon(Items.ENCHANTED_BOOK)
-                    .withName(new LiteralText("Chestplate Protection " + (chestplateProtection + 1)))
-                    .addLore(new LiteralText("Increases the protection level of your chestplate"))
-                    .withCost(chestplateProtection >= 4 ? Cost.no() : Cost.ofIron((int) (Math.pow(config.protection.scale, chestplateProtection) * config.protection.base)))
-                    .onBuy(p -> {
-                        properties.chestplateProtection++;
-                        applyEnchantments(player, stack -> stack.getItem() instanceof ArmorItem && ((ArmorItem) stack.getItem()).getSlotType().equals(EquipmentSlot.CHEST), Enchantments.PROTECTION, chestplateProtection + 1);
-                    })
-            );
-
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-
-
-            shop.addItem(PotionUtil.setPotion(
-                    new ItemStack(Items.SPLASH_POTION, config.healingPotion.count),
-                    Potions.STRONG_HEALING),
-                    Cost.ofGold(config.healingPotion.cost));
-            shop.addItem(PotionUtil.setPotion(
-                    new ItemStack(Items.SPLASH_POTION, config.harmingPotion.count),
-                    Potions.STRONG_HARMING),
-                    Cost.ofGold(config.harmingPotion.cost));
-            shop.addItem(PotionUtil.setPotion(
-                    new ItemStack(Items.POTION, config.swiftnessPotion.count),
-                    Potions.SWIFTNESS),
-                    Cost.ofGold(config.swiftnessPotion.cost));
-            shop.addItem(PotionUtil.setPotion(
-                    new ItemStack(Items.POTION, config.regenerationPotion.count),
-                    Potions.STRONG_REGENERATION),
-                    Cost.ofGold(config.regenerationPotion.cost));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-
-            shop.add(ShopEntry.ofIcon(leggings)
-                    .withName(new LiteralText("Upgrade Leggings"))
-                    .addLore(new LiteralText(leggingsText))
-                    .withCost(leggingsCost)
-                    .onBuy(p -> {
-                        properties.leggingsLevel++;
-                        switch (leggingsLevel) {
-                            case 0:
-                                replaceItem(player, stack -> stack.getItem().equals(Items.CHAINMAIL_LEGGINGS), ItemStackBuilder.of(Items.IRON_LEGGINGS).setUnbreakable().build());
-                                break;
-                            case 1:
-                                replaceItem(player, stack -> stack.getItem().equals(Items.IRON_LEGGINGS), ItemStackBuilder.of(Items.DIAMOND_LEGGINGS).setUnbreakable().build());
-                                break;
-                            case 2:
-                                replaceItem(player, stack -> stack.getItem().equals(Items.DIAMOND_LEGGINGS), ItemStackBuilder.of(Items.NETHERITE_LEGGINGS).setUnbreakable().build());
-                                break;
+                        if (!displayItem.getItem().equals(Items.ENCHANTED_BOOK)) {
+                            displayItem = itemToEnchant;
                         }
-                    })
-            );
+                    }
+                }
 
-            shop.add(ShopEntry.ofIcon(Items.ENCHANTED_BOOK)
-                    .withName(new LiteralText("Leggings Protection " + (leggingsProtection + 1)))
-                    .addLore(new LiteralText("Increases the protection level of your leggings"))
-                    .withCost(leggingsProtection >= 4 ? Cost.no() : Cost.ofIron((int) (Math.pow(config.protection.scale, leggingsProtection) * config.protection.base)))
-                    .onBuy(p -> {
-                        properties.leggingsProtection++;
-                        applyEnchantments(player, stack -> stack.getItem() instanceof ArmorItem && ((ArmorItem) stack.getItem()).getSlotType().equals(EquipmentSlot.LEGS), Enchantments.PROTECTION, leggingsProtection + 1);
-                    })
-            );
+                Cost cost = Cost.no();
+                int c = 0;
+                String currency = "iron";
 
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
+                switch (entry.cost.type) {
+                    case "fixed":
+                        c = entry.cost.cost;
+                        currency = entry.cost.currency;
+                        break;
 
-            shop.add(ShopEntry.ofIcon(boots)
-                    .withName(new LiteralText("Upgrade Boots"))
-                    .addLore(new LiteralText(bootsText))
-                    .withCost(bootsCost)
-                    .onBuy(p -> {
-                        properties.bootsLevel++;
-                        switch (bootsLevel) {
-                            case 0:
-                                replaceItem(player, stack -> stack.getItem().equals(Items.CHAINMAIL_BOOTS), ItemStackBuilder.of(Items.IRON_BOOTS).setUnbreakable().build());
-                                break;
-                            case 1:
-                                replaceItem(player, stack -> stack.getItem().equals(Items.IRON_BOOTS), ItemStackBuilder.of(Items.DIAMOND_BOOTS).setUnbreakable().build());
-                                break;
-                            case 2:
-                                replaceItem(player, stack -> stack.getItem().equals(Items.DIAMOND_BOOTS), ItemStackBuilder.of(Items.NETHERITE_BOOTS).setUnbreakable().build());
-                                break;
+                    case "scaled":
+                        c = (int) (Math.pow(entry.cost.scale, currentLevel) * entry.cost.base);
+                        currency = entry.cost.currency;
+                        break;
+
+                    case "scaled_alt":
+                        c = (currentLevel + 1) * entry.cost.base + 4 * (int) Math.max(0, Math.pow(currentLevel - 2, entry.cost.scale));
+                        currency = entry.cost.currency;
+                        break;
+
+                    case "custom":
+                        if (currentLevel >= entry.cost.levels.size()) {
+                            canBuy = false;
+                        } else {
+                            c = entry.cost.levels.get(currentLevel).cost;
+                            currency = entry.cost.levels.get(currentLevel).currency;
                         }
-                    })
-            );
+                        break;
+                }
 
-            shop.add(ShopEntry.ofIcon(Items.ENCHANTED_BOOK)
-                    .withName(new LiteralText("Boots Protection " + (bootsProtection + 1)))
-                    .addLore(new LiteralText("Increases the protection level of your boots"))
-                    .withCost(bootsProtection >= 4 ? Cost.no() : Cost.ofIron((int) (Math.pow(config.protection.scale, bootsProtection) * config.protection.base)))
-                    .onBuy(p -> {
-                        properties.bootsProtection++;
-                        applyEnchantments(player, stack -> stack.getItem() instanceof ArmorItem && ((ArmorItem) stack.getItem()).getSlotType().equals(EquipmentSlot.FEET), Enchantments.PROTECTION, bootsProtection + 1);
-                    })
-            );
+                switch (currency) {
+                    case "iron":
+                        cost = Cost.ofIron(c);
+                        break;
 
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
+                    case "gold":
+                        cost = Cost.ofGold(c);
+                        break;
 
-            int quickChargeCost = config.quickCharge.lvl1;
-            if (properties.quickChargeLevel == 1) {
-                quickChargeCost = config.quickCharge.lvl2;
+                    case "emerald":
+                        cost = Cost.ofEmeralds(c);
+                        break;
+                }
+
+                if (!canBuy || displayItem.getItem().equals(Items.LIGHT_GRAY_STAINED_GLASS_PANE)) {
+                    cost = Cost.no();
+                }
+
+                if (!itemToGive.getItem().equals(Items.AIR)) {
+                    shop.addItem(itemToGive, cost);
+                } else {
+                    boolean shouldEnchantItem = !itemToEnchant.getItem().equals(Items.AIR);
+                    boolean shouldUpgradeItem = !itemToReplaceWith.getItem().equals(Items.AIR);
+                    ItemStack finalItemToUpgrade = itemToUpgrade;
+                    ItemStack finalItemToReplaceWith = itemToReplaceWith;
+                    ItemStack finalItemToEnchant = itemToEnchant;
+                    int finalCurrentLevel = currentLevel;
+
+                    shop.add(ShopEntry.ofIcon(displayItem)
+                            .withName(new LiteralText(entry.name))
+                            .addLore(new LiteralText(entry.description))
+                            .withCost(cost)
+                            .onBuy(p -> {
+                                if (shouldUpgradeItem) {
+                                    replaceItem(player, stack -> stack.getItem().equals(finalItemToUpgrade.getItem()), finalItemToReplaceWith);
+                                } else if (shouldEnchantItem) {
+                                    applyEnchantments(player, stack -> stack.getItem().equals(finalItemToEnchant.getItem()), Registry.ENCHANTMENT.get(id(entry.enchantment.enchantment)), finalCurrentLevel + 1);
+                                }
+                            })
+                    );
+                }
             }
-            if (properties.quickChargeLevel == 2) {
-                quickChargeCost = config.quickCharge.lvl3;
-            }
-
-            shop.add(ShopEntry.ofIcon(Items.CROSSBOW)
-                    .withName(new LiteralText("Crossbow Quick Charge " + (quickCharge + 1)))
-                    .addLore(new LiteralText("Increases the quick charge level of your crossbow"))
-                    .withCost(quickCharge >= 3 ? Cost.no() : Cost.ofGold(quickChargeCost))
-                    .onBuy(p -> {
-                        properties.quickChargeLevel++;
-                        applyEnchantments(player, stack -> stack.getItem() instanceof CrossbowItem, Enchantments.QUICK_CHARGE, quickCharge + 1);
-                    })
-            );
-
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
-            shop.add(ShopEntry.ofIcon(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
-                    .withCost(Cost.no()));
         });
+    }
+
+    private static Identifier id(String name) {
+        return new Identifier("minecraft", name.replace("minecraft:", ""));
     }
 
     private static void applyEnchantments(ServerPlayerEntity player, Predicate<ItemStack> predicate, Enchantment enchantment, int level) {
@@ -421,5 +288,16 @@ public final class WdItemShop {
                 inventory.setStack(slot, newItem);
             }
         }
+    }
+
+    private static ItemStack getFirstInInventory(ServerPlayerEntity player, Predicate<ItemStack> predicate) {
+        PlayerInventory inventory = player.inventory;
+        for (int slot = 0; slot < inventory.size(); slot++) {
+            ItemStack stack = inventory.getStack(slot);
+            if (!stack.isEmpty() && predicate.test(stack)) {
+                return stack;
+            }
+        }
+        return null;
     }
 }
