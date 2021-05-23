@@ -31,378 +31,485 @@
     "cave_spider": 1.0
   },
   "shop": [
-    {
-      "display": "sword",
-      "name": "Upgrade Sword",
-      "description": "Upgrade your sword's material",
-      "upgrade": "sword",
-      "cost": {
-        "type": "custom",
-        "levels": [
-          {
-            "currency": "gold",
-            "cost": 3
-          },
-          {
-            "currency": "gold",
-            "cost": 8
-          }
-        ]
-      }
-    },
-    {
-      "display": "enchanted_book",
-      "name": "Sword Sharpness",
-      "description": "Adds 1 Sharpness level to your Sword",
-      "enchantment": {
-        "target": "sword",
-        "enchantment": "sharpness"
+    [
+      {
+        "display": "sword",
+        "name": "Upgrade Sword",
+        "description": "Upgrade your sword's material",
+        "upgrade": "sword",
+        "cost": {
+          "type": "custom",
+          "levels": [
+            {
+              "currency": "gold",
+              "cost": 3
+            },
+            {
+              "currency": "gold",
+              "cost": 8
+            }
+          ]
+        }
       },
-      "cost": {
-        "type": "scaled_alt",
-        "currency": "iron",
-        "base": 16,
-        "scale": 1.8
-      }
-    },
-    {},
-    {
-      "name": "Bow Power",
-      "description": "Adds 1 Power level to your Bow",
-      "enchantment": {
-        "target": "bow",
-        "enchantment": "power",
-        "limit": 5
+      {
+        "display": "enchanted_book",
+        "name": "Sword Sharpness",
+        "description": "Adds 1 Sharpness level to your Sword",
+        "enchantment": {
+          "target": "sword",
+          "enchantment": "sharpness"
+        },
+        "cost": {
+          "type": "scaled_alt",
+          "currency": "iron",
+          "base": 16,
+          "scale": 1.8
+        }
       },
-      "cost": {
-        "type": "scaled",
-        "currency": "iron",
-        "base": 16,
-        "scale": 2
-      }
-    },
-    {
-      "name": "Crossbow Piercing",
-      "description": "Adds 1 Piercing level to your Crossbow",
-      "enchantment": {
-        "target": "crossbow",
-        "enchantment": "piercing"
+      {},
+      {
+        "name": "Bow Power",
+        "description": "Adds 1 Power level to your Bow",
+        "enchantment": {
+          "target": "bow",
+          "enchantment": "power",
+          "limit": 5
+        },
+        "cost": {
+          "type": "scaled",
+          "currency": "iron",
+          "base": 16,
+          "scale": 2
+        }
       },
-      "cost": {
-        "type": "scaled",
-        "currency": "iron",
-        "base": 16,
-        "scale": 2
-      }
-    },
-    {
-      "cost": {
-        "type": "fixed",
-        "currency": "iron",
-        "cost": 2
+      {
+        "name": "Crossbow Piercing",
+        "description": "Adds 1 Piercing level to your Crossbow",
+        "enchantment": {
+          "target": "crossbow",
+          "enchantment": "piercing"
+        },
+        "cost": {
+          "type": "scaled",
+          "currency": "iron",
+          "base": 16,
+          "scale": 2
+        }
       },
-      "item": {
-        "item": "arrow",
-        "count": 3
-      }
-    },
-    {},
-    {},
-    {},
-    {
-      "display": "helmet",
-      "name": "Upgrade Helmet",
-      "description": "Upgrade your helmet's material",
-      "upgrade": "helmet",
-      "cost": {
-        "type": "custom",
-        "levels": [
-          {
-            "currency": "iron",
-            "cost": 4
-          },
-          {
-            "currency": "gold",
-            "cost": 3
-          },
-          {
-            "currency": "gold",
-            "cost": 6
-          }
-        ]
-      }
-    },
-    {
-      "display": "enchanted_book",
-      "name": "Helmet Protection",
-      "description": "Adds 1 Protection level to your Helmet",
-      "enchantment": {
-        "target": "helmet",
-        "enchantment": "protection",
-        "limit": 4
+      {
+        "cost": {
+          "type": "fixed",
+          "currency": "iron",
+          "cost": 2
+        },
+        "item": {
+          "item": "arrow",
+          "count": 3
+        }
       },
-      "cost": {
-        "type": "scaled",
-        "currency": "iron",
-        "base": 12,
-        "scale": 2
-      }
-    },
-    {},
-    {
-      "cost": {
-        "type": "fixed",
-        "currency": "iron",
-        "cost": 1
+      {},
+      {},
+      {
+        "cost": {
+          "type": "fixed",
+          "currency": "gold",
+          "cost": 1
+        },
+        "item": {
+          "item": "iron_ingot",
+          "count": 40
+        }
       },
-      "item": {
-        "item": "bread",
-        "count": 4
-      }
-    },
-    {
-      "cost": {
-        "type": "fixed",
-        "currency": "iron",
-        "cost": 1
+      {
+        "display": "helmet",
+        "name": "Upgrade Helmet",
+        "description": "Upgrade your helmet's material",
+        "upgrade": "helmet",
+        "cost": {
+          "type": "custom",
+          "levels": [
+            {
+              "currency": "iron",
+              "cost": 4
+            },
+            {
+              "currency": "gold",
+              "cost": 3
+            },
+            {
+              "currency": "gold",
+              "cost": 6
+            }
+          ]
+        }
       },
-      "item": {
-        "item": "cooked_beef",
-        "count": 2
-      }
-    },
-    {
-      "cost": {
-        "type": "fixed",
-        "currency": "iron",
-        "cost": 2
+      {
+        "display": "enchanted_book",
+        "name": "Helmet Protection",
+        "description": "Adds 1 Protection level to your Helmet",
+        "enchantment": {
+          "target": "helmet",
+          "enchantment": "protection",
+          "limit": 4
+        },
+        "cost": {
+          "type": "scaled",
+          "currency": "iron",
+          "base": 12,
+          "scale": 2
+        }
       },
-      "item": {
-        "item": "golden_carrot",
-        "count": 2
-      }
-    },
-    {
-      "cost": {
-        "type": "fixed",
-        "currency": "iron",
-        "cost": 8
+      {},
+      {
+        "cost": {
+          "type": "fixed",
+          "currency": "iron",
+          "cost": 1
+        },
+        "item": {
+          "item": "bread",
+          "count": 4
+        }
       },
-      "item": {
-        "item": "golden_apple",
-        "count": 1
-      }
-    },
-    {},
-    {},
-    {
-      "display": "chestplate",
-      "name": "Upgrade Chestplate",
-      "description": "Upgrade your chestplate's material",
-      "upgrade": "chestplate",
-      "cost": {
-        "type": "custom",
-        "levels": [
-          {
-            "currency": "gold",
-            "cost": 1
-          },
-          {
-            "currency": "gold",
-            "cost": 3
-          },
-          {
-            "currency": "gold",
-            "cost": 6
-          }
-        ]
-      }
-    },
-    {
-      "display": "enchanted_book",
-      "name": "Chestplate Protection",
-      "description": "Adds 1 Protection level to your Chestplate",
-      "enchantment": {
-        "target": "chestplate",
-        "enchantment": "protection",
-        "limit": 4
+      {
+        "cost": {
+          "type": "fixed",
+          "currency": "iron",
+          "cost": 1
+        },
+        "item": {
+          "item": "cooked_beef",
+          "count": 2
+        }
       },
-      "cost": {
-        "type": "scaled",
-        "currency": "iron",
-        "base": 12,
-        "scale": 2
-      }
-    },
-    {},
-    {
-      "potion": "strong_healing",
-      "cost": {
-        "type": "fixed",
-        "currency": "gold",
-        "cost": 1
+      {
+        "cost": {
+          "type": "fixed",
+          "currency": "iron",
+          "cost": 2
+        },
+        "item": {
+          "item": "golden_carrot",
+          "count": 2
+        }
       },
-      "item": {
-        "item": "splash_potion",
-        "count": 6
-      }
-    },
-    {
-      "potion": "strong_harming",
-      "cost": {
-        "type": "fixed",
-        "currency": "gold",
-        "cost": 1
+      {
+        "cost": {
+          "type": "fixed",
+          "currency": "iron",
+          "cost": 8
+        },
+        "item": {
+          "item": "golden_apple",
+          "count": 1
+        }
       },
-      "item": {
-        "item": "splash_potion",
-        "count": 6
-      }
-    },
-    {
-      "potion": "swiftness",
-      "cost": {
-        "type": "fixed",
-        "currency": "gold",
-        "cost": 1
+      {},
+      {
+        "cost": {
+          "type": "fixed",
+          "currency": "iron",
+          "cost": 48
+        },
+        "item": {
+          "item": "gold_ingot",
+          "count": 1
+        }
       },
-      "item": {
-        "item": "potion",
-        "count": 1
-      }
-    },
-    {
-      "potion": "strong_regeneration",
-      "cost": {
-        "type": "fixed",
-        "currency": "gold",
-        "cost": 1
+      {
+        "display": "chestplate",
+        "name": "Upgrade Chestplate",
+        "description": "Upgrade your chestplate's material",
+        "upgrade": "chestplate",
+        "cost": {
+          "type": "custom",
+          "levels": [
+            {
+              "currency": "gold",
+              "cost": 1
+            },
+            {
+              "currency": "gold",
+              "cost": 3
+            },
+            {
+              "currency": "gold",
+              "cost": 6
+            }
+          ]
+        }
       },
-      "item": {
-        "item": "potion",
-        "count": 2
-      }
-    },
-    {},
-    {},
-    {
-      "display": "leggings",
-      "name": "Upgrade Leggings",
-      "description": "Upgrade your leggings' material",
-      "upgrade": "leggings",
-      "cost": {
-        "type": "custom",
-        "levels": [
-          {
-            "currency": "gold",
-            "cost": 1
-          },
-          {
-            "currency": "gold",
-            "cost": 3
-          },
-          {
-            "currency": "gold",
-            "cost": 6
-          }
-        ]
-      }
-    },
-    {
-      "display": "enchanted_book",
-      "name": "Leggings Protection",
-      "description": "Adds 1 Protection level to your Leggings",
-      "enchantment": {
-        "target": "leggings",
-        "enchantment": "protection",
-        "limit": 4
+      {
+        "display": "enchanted_book",
+        "name": "Chestplate Protection",
+        "description": "Adds 1 Protection level to your Chestplate",
+        "enchantment": {
+          "target": "chestplate",
+          "enchantment": "protection",
+          "limit": 4
+        },
+        "cost": {
+          "type": "scaled",
+          "currency": "iron",
+          "base": 12,
+          "scale": 2
+        }
       },
-      "cost": {
-        "type": "scaled",
-        "currency": "iron",
-        "base": 12,
-        "scale": 2
-      }
-    },
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {
-      "display": "boots",
-      "name": "Upgrade Boots",
-      "description": "Upgrade your boots' material",
-      "upgrade": "boots",
-      "cost": {
-        "type": "custom",
-        "levels": [
-          {
-            "currency": "gold",
-            "cost": 1
-          },
-          {
-            "currency": "gold",
-            "cost": 3
-          },
-          {
-            "currency": "gold",
-            "cost": 6
-          }
-        ]
-      }
-    },
-    {
-      "display": "enchanted_book",
-      "name": "Boots Protection",
-      "description": "Adds 1 Protection level to your Boots",
-      "enchantment": {
-        "target": "boots",
-        "enchantment": "protection",
-        "limit": 4
+      {},
+      {
+        "potion": "strong_healing",
+        "cost": {
+          "type": "fixed",
+          "currency": "emerald",
+          "cost": 1
+        },
+        "item": {
+          "item": "splash_potion",
+          "count": 1
+        }
       },
-      "cost": {
-        "type": "scaled",
-        "currency": "iron",
-        "base": 12,
-        "scale": 2
-      }
-    },
-    {},
-    {
-      "display": "crossbow",
-      "name": "Crossbow Quick Charge",
-      "description": "Adds 1 Quick Charge level to your Crossbow",
-      "enchantment": {
-        "target": "crossbow",
-        "enchantment": "quick_charge",
-        "limit": 3
+      {
+        "potion": "strong_harming",
+        "cost": {
+          "type": "fixed",
+          "currency": "emerald",
+          "cost": 1
+        },
+        "item": {
+          "item": "splash_potion",
+          "count": 1
+        }
       },
-      "cost": {
-        "type": "custom",
-        "levels": [
-          {
-            "currency": "gold",
-            "cost": 2
-          },
-          {
-            "currency": "gold",
-            "cost": 5
-          },
-          {
-            "currency": "gold",
-            "cost": 8
-          }
-        ]
+      {
+        "potion": "swiftness",
+        "cost": {
+          "type": "fixed",
+          "currency": "emerald",
+          "cost": 3
+        },
+        "item": {
+          "item": "potion",
+          "count": 1
+        }
+      },
+      {
+        "potion": "strong_regeneration",
+        "cost": {
+          "type": "fixed",
+          "currency": "emerald",
+          "cost": 3
+        },
+        "item": {
+          "item": "potion",
+          "count": 1
+        }
+      },
+      {},
+      {
+        "cost": {
+          "type": "fixed",
+          "currency": "gold",
+          "cost": 1
+        },
+        "item": {
+          "item": "emerald",
+          "count": 6
+        }
+      },
+      {
+        "display": "leggings",
+        "name": "Upgrade Leggings",
+        "description": "Upgrade your leggings' material",
+        "upgrade": "leggings",
+        "cost": {
+          "type": "custom",
+          "levels": [
+            {
+              "currency": "gold",
+              "cost": 1
+            },
+            {
+              "currency": "gold",
+              "cost": 3
+            },
+            {
+              "currency": "gold",
+              "cost": 6
+            }
+          ]
+        }
+      },
+      {
+        "display": "enchanted_book",
+        "name": "Leggings Protection",
+        "description": "Adds 1 Protection level to your Leggings",
+        "enchantment": {
+          "target": "leggings",
+          "enchantment": "protection",
+          "limit": 4
+        },
+        "cost": {
+          "type": "scaled",
+          "currency": "iron",
+          "base": 12,
+          "scale": 2
+        }
+      },
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {
+        "display": "boots",
+        "name": "Upgrade Boots",
+        "description": "Upgrade your boots' material",
+        "upgrade": "boots",
+        "cost": {
+          "type": "custom",
+          "levels": [
+            {
+              "currency": "gold",
+              "cost": 1
+            },
+            {
+              "currency": "gold",
+              "cost": 3
+            },
+            {
+              "currency": "gold",
+              "cost": 6
+            }
+          ]
+        }
+      },
+      {
+        "display": "enchanted_book",
+        "name": "Boots Protection",
+        "description": "Adds 1 Protection level to your Boots",
+        "enchantment": {
+          "target": "boots",
+          "enchantment": "protection",
+          "limit": 4
+        },
+        "cost": {
+          "type": "scaled",
+          "currency": "iron",
+          "base": 12,
+          "scale": 2
+        }
+      },
+      {},
+      {
+        "display": "crossbow",
+        "name": "Crossbow Quick Charge",
+        "description": "Adds 1 Quick Charge level to your Crossbow",
+        "enchantment": {
+          "target": "crossbow",
+          "enchantment": "quick_charge",
+          "limit": 3
+        },
+        "cost": {
+          "type": "custom",
+          "levels": [
+            {
+              "currency": "gold",
+              "cost": 2
+            },
+            {
+              "currency": "gold",
+              "cost": 5
+            },
+            {
+              "currency": "gold",
+              "cost": 8
+            }
+          ]
+        }
+      },
+      {
+        "cost": {
+          "type": "fixed",
+          "currency": "emerald",
+          "cost": 1
+        },
+        "item": {
+          "item": "experience_bottle",
+          "count": 2
+        }
+      },
+      {
+        "cost": {
+          "type": "fixed",
+          "currency": "emerald",
+          "cost": 2
+        },
+        "item": {
+          "item": "ender_pearl",
+          "count": 1
+        }
+      },
+      {},
+      {},
+      {
+        "name": "next_page"
       }
-    },
-    {},
-    {},
-    {},
-    {},
-    {}
+    ],
+    [
+      {
+        "name": "display_stats"
+      },
+      {
+        "name": "display_xp"
+      },
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {
+        "name": "previous_page"
+      },
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
   ],
   "shop_old": {
     "sword_type": {

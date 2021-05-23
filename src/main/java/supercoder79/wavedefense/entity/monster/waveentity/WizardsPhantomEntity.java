@@ -1,4 +1,4 @@
-package supercoder79.wavedefense.entity.monster;
+package supercoder79.wavedefense.entity.monster.waveentity;
 
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -77,21 +77,6 @@ public class WizardsPhantomEntity extends PhantomEntity implements WaveEntity {
     @Override
     public boolean canBeControlledByRider() {
         return true;
-    }
-
-    @Override
-    public int ironCount() {
-        return 20;
-    }
-
-    @Override
-    public int goldCount() {
-        return 1;
-    }
-
-    @Override
-    public int monsterScore() {
-        return 20;
     }
 
     @Override

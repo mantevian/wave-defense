@@ -28,8 +28,13 @@ public final class DrownedClasses {
 		}
 
 		@Override
-		public int monsterPoints() {
+		public int monsterScore() {
 			return 2;
+		}
+
+		@Override
+		public int xp() {
+			return 1;
 		}
 
 		@Override
@@ -46,17 +51,22 @@ public final class DrownedClasses {
 
 		@Override
 		public int ironCount() {
-			return 8;
+			return 10;
 		}
 
 		@Override
 		public int goldCount() {
-			return new Random().nextInt(5) == 0 ? 1 : 0;
+			return 0;
 		}
 
 		@Override
-		public int monsterPoints() {
+		public int monsterScore() {
 			return 6;
+		}
+
+		@Override
+		public int xp() {
+			return 4;
 		}
 
 		@Override

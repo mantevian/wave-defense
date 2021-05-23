@@ -5,7 +5,6 @@ import supercoder79.wavedefense.entity.WaveEntity;
 import supercoder79.wavedefense.entity.goal.MoveTowardGameCenterGoal;
 import supercoder79.wavedefense.entity.monster.classes.SkeletonClass;
 import supercoder79.wavedefense.entity.monster.classes.SkeletonClasses;
-import supercoder79.wavedefense.entity.monster.classes.StrayClasses;
 import supercoder79.wavedefense.game.WdActive;
 
 import net.minecraft.entity.EntityType;
@@ -82,21 +81,6 @@ public class WaveSkeletonEntity extends SkeletonEntity implements WaveEntity {
 		this.playSound(SoundEvents.ENTITY_SKELETON_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
 
 		this.world.spawnEntity(arrowProjectile);
-	}
-
-	@Override
-	public int ironCount() {
-		return this.getMonsterClass().ironCount() + this.getMod().ironBonus;
-	}
-
-	@Override
-	public int goldCount() {
-		return this.getMonsterClass().goldCount();
-	}
-
-	@Override
-	public int monsterScore() {
-		return this.getMonsterClass().monsterPoints();
 	}
 
 	@Override

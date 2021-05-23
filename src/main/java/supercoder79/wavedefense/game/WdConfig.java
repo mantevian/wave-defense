@@ -17,19 +17,19 @@ public final class WdConfig {
             Codec.DOUBLE.fieldOf("max_wave_spacing").forGetter(config -> config.maxWaveSpacing),
             MonsterSpawns.CODEC.fieldOf("monster_spawns").forGetter(config -> config.monsterSpawns),
             MonsterSpawnChoices.CODEC.fieldOf("monster_spawn_choices").forGetter(config -> config.monsterSpawnChoices),
-            Codec.list(ShopEntry.CODEC).fieldOf("shop").forGetter(config -> config.shop)
+            Codec.list(Codec.list(ShopEntry.CODEC)).fieldOf("shop").forGetter(config -> config.shop)
     ).apply(instance, (playerConfig1, path1, spawnRadius1, minWaveSpacing1, maxWaveSpacing1, monsterSpawns1, monsterSpawnChoices1, shop1) -> new WdConfig(playerConfig1, path1, monsterSpawns1, monsterSpawnChoices1, shop1, spawnRadius1, minWaveSpacing1, maxWaveSpacing1)));
 
     public final PlayerConfig playerConfig;
     public final Path path;
     public final MonsterSpawns monsterSpawns;
     public final MonsterSpawnChoices monsterSpawnChoices;
-    public final List<ShopEntry> shop;
+    public final List<List<ShopEntry>> shop;
     public final int spawnRadius;
     public final double minWaveSpacing;
     public final double maxWaveSpacing;
 
-    public WdConfig(PlayerConfig playerConfig, Path path, MonsterSpawns monsterSpawns, MonsterSpawnChoices monsterSpawnChoices, List<ShopEntry> shop, int spawnRadius, double minWaveSpacing, double maxWaveSpacing) {
+    public WdConfig(PlayerConfig playerConfig, Path path, MonsterSpawns monsterSpawns, MonsterSpawnChoices monsterSpawnChoices, List<List<ShopEntry>> shop, int spawnRadius, double minWaveSpacing, double maxWaveSpacing) {
         this.playerConfig = playerConfig;
         this.path = path;
         this.monsterSpawns = monsterSpawns;

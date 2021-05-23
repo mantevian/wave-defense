@@ -4,10 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.mob.PhantomEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import supercoder79.wavedefense.entity.MonsterModifier;
@@ -55,21 +52,6 @@ public class WavePhantomEntity extends PhantomEntity implements WaveEntity {
         this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(this.getMonsterClass().maxHealth());
         this.setHealth((float) this.getMonsterClass().maxHealth());
         this.getAttributeInstance(EntityAttributes.GENERIC_FOLLOW_RANGE).setBaseValue(64d);
-    }
-
-    @Override
-    public int ironCount() {
-        return this.getMonsterClass().ironCount() + this.getMod().ironBonus;
-    }
-
-    @Override
-    public int goldCount() {
-        return this.getMonsterClass().goldCount();
-    }
-
-    @Override
-    public int monsterScore() {
-        return this.getMonsterClass().monsterPoints();
     }
 
     @Override

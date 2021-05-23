@@ -12,6 +12,7 @@ import net.minecraft.potion.PotionUtil;
 import net.minecraft.potion.Potions;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.TextColor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import xyz.nucleoid.plasmid.shop.Cost;
@@ -27,11 +28,14 @@ import java.util.function.Predicate;
 
 public final class WdItemShop {
     public static ShopUi create(ServerPlayerEntity player, WdActive game) {
-        List<WdConfig.ShopEntry> entries = game.config.shop;
-
         return ShopUi.create(new LiteralText("Item Shop"), shop -> {
+            WdPlayer wdPlayer = game.players.get(PlayerRef.of(player));
+            List<WdConfig.ShopEntry> entries = game.config.shop.get(wdPlayer.openedShopPage);
+
             for (WdConfig.ShopEntry entry : entries) {
                 ItemStack displayItem = new ItemStack(Registry.ITEM.get(id(entry.display)));
+                String displayName = entry.name;
+                String displayDescription = entry.description;
 
                 if (entry.display.equals("sword") || entry.display.equals("helmet") || entry.display.equals("chestplate") || entry.display.equals("leggings") || entry.display.equals("boots")) {
                     displayItem = getFirstInInventory(player, i -> i.getItem().toString().contains(entry.display));
@@ -48,7 +52,7 @@ public final class WdItemShop {
                 if (entry.item != null) {
                     itemToGive = new ItemStack(Registry.ITEM.get(id(entry.item.item)), entry.item.count);
 
-                    if (entry.potion != null) {
+                    if (!entry.potion.equals("")) {
                         CompoundTag potionTag = new CompoundTag();
                         potionTag.put("Potion", StringTag.of(entry.potion));
                         itemToGive.setTag(potionTag);
@@ -230,6 +234,37 @@ public final class WdItemShop {
                     cost = Cost.no();
                 }
 
+                int changePage = 0;
+
+                switch (entry.name) {
+                    case "next_page":
+                        changePage = 1;
+                        displayName = "Next Page";
+                        break;
+                    case "previous_page":
+                        changePage = -1;
+                        displayName = "Previous Page";
+                        break;
+                    case "display_stats":
+                        displayItem = new ItemStack(Items.PLAYER_HEAD);
+                        CompoundTag skullTag = new CompoundTag();
+                        skullTag.put("SkullOwner", StringTag.of(player.getName().getString()));
+                        displayItem.setTag(skullTag);
+                        displayName = "Your stats";
+                        displayDescription = wdPlayer.mobKillsToString() + "\n\n" + wdPlayer.mobAssistsToString();
+                        break;
+                    case "display_xp":
+                        displayItem = new ItemStack(Items.EXPERIENCE_BOTTLE);
+                        displayName = "Your stats";
+                        displayDescription = "XP: " + player.totalExperience + "\nUpgrade Points: " + wdPlayer.upgradePoints + " / " + player.experienceLevel;
+                        break;
+                }
+
+                if (changePage != 0) {
+                    cost = Cost.free();
+                    displayItem = new ItemStack(Items.LIME_STAINED_GLASS_PANE);
+                }
+
                 if (!itemToGive.getItem().equals(Items.AIR)) {
                     shop.addItem(itemToGive, cost);
                 } else {
@@ -239,19 +274,26 @@ public final class WdItemShop {
                     ItemStack finalItemToReplaceWith = itemToReplaceWith;
                     ItemStack finalItemToEnchant = itemToEnchant;
                     int finalCurrentLevel = currentLevel;
+                    int finalChangePage = changePage;
 
-                    shop.add(ShopEntry.ofIcon(displayItem)
-                            .withName(new LiteralText(entry.name))
-                            .addLore(new LiteralText(entry.description))
+                    ShopEntry shopEntry = ShopEntry.ofIcon(displayItem)
+                            .withName(new LiteralText(displayName))
                             .withCost(cost)
                             .onBuy(p -> {
                                 if (shouldUpgradeItem) {
                                     replaceItem(player, stack -> stack.getItem().equals(finalItemToUpgrade.getItem()), finalItemToReplaceWith);
                                 } else if (shouldEnchantItem) {
                                     applyEnchantments(player, stack -> stack.getItem().equals(finalItemToEnchant.getItem()), Registry.ENCHANTMENT.get(id(entry.enchantment.enchantment)), finalCurrentLevel + 1);
+                                } else {
+                                    wdPlayer.openedShopPage += finalChangePage;
                                 }
-                            })
-                    );
+                            });
+
+                    for (String s : displayDescription.split("\n")) {
+                        shopEntry.addLore(new LiteralText(s).styled(style -> style.withColor(TextColor.parse("gray")).withItalic(false)));
+                    }
+
+                    shop.add(shopEntry);
                 }
             }
         });

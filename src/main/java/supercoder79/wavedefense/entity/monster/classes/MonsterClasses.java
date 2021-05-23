@@ -39,13 +39,12 @@ public final class MonsterClasses {
 		}
 
 		@Override
-		public int goldCount() {
-			return 0;
-		}
-
-		@Override
-		public int monsterPoints() {
+		public int monsterScore() {
 			return 2;
+		}
+		@Override
+		public int xp() {
+			return 1;
 		}
 
 		@Override
@@ -91,27 +90,30 @@ public final class MonsterClasses {
 		}
 
 		@Override
-		public int goldCount() {
-			return new Random().nextInt(12) == 0 ? 1 : 0;
+		public int monsterScore() {
+			return 3;
 		}
 
 		@Override
-		public int monsterPoints() {
+		public int xp() {
 			return 3;
 		}
 	};
 
 	public static final MonsterClass TANK = new MonsterClass() {
 		private int iron;
+		private int gold;
 
 		@Override
 		public void apply(MobEntity entity, MonsterModifier mod, Random random, int waveOrdinal) {
-			iron = 7;
+			iron = 6;
 			iron = EquipmentHelper.equipSword(waveOrdinal, random, iron, entity, 4);
 			iron = EquipmentHelper.equipHelmet(waveOrdinal, random, iron, entity, 8);
 			iron = EquipmentHelper.equipChestplate(waveOrdinal, random, iron, entity, 8);
 			iron = EquipmentHelper.equipLeggings(waveOrdinal, random, iron, entity, 8);
 			iron = EquipmentHelper.equipBoots(waveOrdinal, random, iron, entity, 8);
+
+			gold = new Random().nextInt(20) == 0 ? 1 : 0;
 		}
 
 		@Override
@@ -136,12 +138,17 @@ public final class MonsterClasses {
 
 		@Override
 		public int goldCount() {
-			return new Random().nextInt(4) == 0 ? 1 : 0;
+			return gold;
 		}
 
 		@Override
-		public int monsterPoints() {
+		public int monsterScore() {
 			return 4;
+		}
+
+		@Override
+		public int xp() {
+			return 5;
 		}
 	};
 
@@ -177,12 +184,12 @@ public final class MonsterClasses {
 		}
 
 		@Override
-		public int goldCount() {
-			return new Random().nextInt(8) == 0 ? 1 : 0;
+		public int monsterScore() {
+			return 3;
 		}
 
 		@Override
-		public int monsterPoints() {
+		public int xp() {
 			return 3;
 		}
 	};
@@ -217,13 +224,13 @@ public final class MonsterClasses {
 		}
 
 		@Override
-		public int goldCount() {
-			return 0;
+		public int monsterScore() {
+			return 3;
 		}
 
 		@Override
-		public int monsterPoints() {
-			return 3;
+		public int xp() {
+			return 2;
 		}
 	};
 
@@ -276,8 +283,13 @@ public final class MonsterClasses {
 		}
 
 		@Override
-		public int monsterPoints() {
+		public int monsterScore() {
 			return 3;
+		}
+
+		@Override
+		public int xp() {
+			return 2;
 		}
 	};
 }

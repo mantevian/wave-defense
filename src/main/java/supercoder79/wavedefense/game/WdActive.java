@@ -2,9 +2,14 @@ package supercoder79.wavedefense.game;
 
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.ArrowEntity;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -13,14 +18,17 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+import org.apache.logging.log4j.core.jmx.Server;
 import supercoder79.wavedefense.entity.WaveEntity;
 import supercoder79.wavedefense.map.WdMap;
 import supercoder79.wavedefense.util.ASCIIProgressBar;
@@ -44,7 +52,7 @@ public final class WdActive {
     private final MutablePlayerSet participants;
     private final WdSpawnLogic spawnLogic;
     public final WdWaveManager waveManager;
-    public final HashMap<PlayerRef, WdPlayerStats> players = new HashMap<>();
+    public final HashMap<PlayerRef, WdPlayer> players = new HashMap<>();
     private final Set<BlockPos> openedChests = new HashSet<>();
     public final WdBar bar;
 
@@ -96,7 +104,10 @@ public final class WdActive {
 
             game.on(PlayerDeathListener.EVENT, active::onPlayerDeath);
             game.on(EntityDeathListener.EVENT, active::onEntityDeath);
+            game.on(AttackEntityListener.EVENT, active::onEntityAttack);
+            game.on(EntityHitListener.EVENT, active::onEntityHit);
             game.on(UseBlockListener.EVENT, active::onUseBlock);
+
         });
     }
 
@@ -179,8 +190,15 @@ public final class WdActive {
                     MutableText healthBar = ASCIIProgressBar.get(((MobEntity) entity).getHealth() / ((MobEntity) entity).getMaxHealth(), 7);
 
                     entity.setCustomName(name.append(" ").append(healthBar));
+                } else entity.setCustomName(name);
+            } else if (entity instanceof PlayerEntity) {
+                PlayerEntity player = (PlayerEntity) entity;
+                WdPlayer wdPlayer = players.get(PlayerRef.of(player));
+                if (player.experienceLevel > wdPlayer.totalXPLevels) {
+                    wdPlayer.upgradePoints++;
                 }
-                else entity.setCustomName(name);
+
+                wdPlayer.totalXPLevels = player.experienceLevel;
             }
         }
     }
@@ -198,16 +216,49 @@ public final class WdActive {
 
     private ActionResult onEntityDeath(LivingEntity entity, DamageSource source) {
         if (entity instanceof WaveEntity) {
+            WaveEntity waveEntity = (WaveEntity) entity;
             WdWave activeWave = waveManager.getActiveWave();
             if (activeWave != null) {
-                activeWave.onMonsterKilled(((WaveEntity) entity).monsterScore());
+                activeWave.onMonsterKilled(waveEntity.monsterScore());
 
                 if (source.getAttacker() instanceof ServerPlayerEntity) {
                     ServerPlayerEntity player = (ServerPlayerEntity) source.getAttacker();
 
-                    player.inventory.insertStack(new ItemStack(Items.IRON_INGOT, ((WaveEntity) entity).ironCount()));
-                    player.inventory.insertStack(new ItemStack(Items.GOLD_INGOT, ((WaveEntity) entity).goldCount()));
-                    player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+                    player.inventory.insertStack(new ItemStack(Items.IRON_INGOT, waveEntity.ironCount()));
+                    player.inventory.insertStack(new ItemStack(Items.GOLD_INGOT, waveEntity.goldCount()));
+                    player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1.0f);
+                    player.addExperience(waveEntity.xp());
+                    if (waveEntity.ironCount() > 0) {
+                        player.sendMessage(new LiteralText("+" + waveEntity.ironCount() + " iron for killing " + waveEntity.getMonsterClass().name()).styled(style -> style.withColor(TextColor.parse("gray"))), false);
+                    }
+                    if (waveEntity.goldCount() > 0) {
+                        player.sendMessage(new LiteralText("+" + waveEntity.goldCount() + " gold for killing " + waveEntity.getMonsterClass().name()).styled(style -> style.withColor(TextColor.parse("gold"))), false);
+                    }
+                    players.get(PlayerRef.of(player)).addMobKill(waveEntity.getMonsterClass().name());
+
+                    Random random = space.getWorld().random;
+
+                    for (int i = 0; i < waveEntity.emeraldCount(); i++) {
+                        double x = random.nextDouble();
+                        double y = random.nextDouble();
+                        double z = random.nextDouble();
+                        ItemEntity itemEntity = new ItemEntity(space.getWorld(), entity.getX() + x, entity.getY() + y, entity.getZ() + z, new ItemStack(Items.EMERALD));
+                        itemEntity.addVelocity(z * 0.3, 0.2, z * 0.3);
+                        space.getWorld().spawnEntity(itemEntity);
+                    }
+
+                    for (ServerPlayerEntity p : space.getWorld().getPlayers()) {
+
+                        if (waveEntity.getContribution(PlayerRef.of(p)) >= waveEntity.totalContribution() / 4
+                                && !p.equals(player)) {
+                            int assistedIron = (int) ((Math.floor(waveEntity.ironCount() / 4d) + waveEntity.goldCount() * 4) * (waveEntity.getContribution(PlayerRef.of(p)) / waveEntity.totalContribution()));
+                            if (assistedIron > 0) {
+                                p.inventory.insertStack(new ItemStack(Items.IRON_INGOT, assistedIron));
+                                p.sendMessage(new LiteralText("+" + assistedIron + " iron for assisting a kill of " + waveEntity.getMonsterClass().name()).styled(style -> style.withColor(TextColor.parse("gray"))), false);
+                                players.get(PlayerRef.of(player)).addMobAssist(waveEntity.getMonsterClass().name());
+                            }
+                        }
+                    }
                 }
             }
 
@@ -215,6 +266,33 @@ public final class WdActive {
         }
 
         return ActionResult.SUCCESS;
+    }
+
+    private ActionResult onEntityAttack(ServerPlayerEntity player, Hand hand, Entity entity, EntityHitResult result) {
+        if (entity instanceof WaveEntity && result != null) {
+            WaveEntity waveEntity = (WaveEntity) entity;
+            LivingEntity newEntity = (LivingEntity) result.getEntity();
+
+            WdWave activeWave = waveManager.getActiveWave();
+            if (activeWave != null) {
+                waveEntity.addContributedPlayer(PlayerRef.of(player), (int) (newEntity.getHealth() - ((LivingEntity) entity).getHealth()));
+            }
+        }
+
+        return ActionResult.PASS;
+    }
+
+    private ActionResult onEntityHit(ProjectileEntity projectileEntity, EntityHitResult result) {
+        if (projectileEntity.getOwner() instanceof PlayerEntity && result != null) {
+            WaveEntity waveEntity = (WaveEntity) result.getEntity();
+
+            WdWave activeWave = waveManager.getActiveWave();
+            if (activeWave != null) {
+                waveEntity.addContributedPlayer(PlayerRef.of((PlayerEntity) projectileEntity.getOwner()), (int) ((ArrowEntity) projectileEntity).getDamage());
+            }
+        }
+
+        return ActionResult.PASS;
     }
 
     private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
@@ -299,7 +377,7 @@ public final class WdActive {
         player.inventory.armor.set(1, ItemStackBuilder.of(Items.CHAINMAIL_LEGGINGS).setUnbreakable().build());
         player.inventory.armor.set(0, ItemStackBuilder.of(Items.CHAINMAIL_BOOTS).setUnbreakable().build());
 
-        players.put(PlayerRef.of(player), new WdPlayerStats());
+        players.put(PlayerRef.of(player), new WdPlayer());
     }
 
     private void eliminatePlayer(ServerPlayerEntity player) {

@@ -5,13 +5,10 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.mob.SkeletonEntity;
 import net.minecraft.entity.mob.WitchEntity;
-import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.server.world.ServerWorld;
@@ -149,21 +146,6 @@ public final class WaveWitchEntity extends WitchEntity implements WaveEntity {
     @Override
     public boolean showHealth() {
         return true;
-    }
-
-    @Override
-    public int ironCount() {
-        return this.getMonsterClass().ironCount() + this.getMod().ironBonus;
-    }
-
-    @Override
-    public int goldCount() {
-        return this.getMonsterClass().goldCount();
-    }
-
-    @Override
-    public int monsterScore() {
-        return this.getMonsterClass().monsterPoints();
     }
 
     @Override

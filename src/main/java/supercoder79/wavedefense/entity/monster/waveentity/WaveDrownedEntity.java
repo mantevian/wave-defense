@@ -7,10 +7,8 @@ import net.minecraft.entity.ai.goal.FollowTargetGoal;
 import net.minecraft.entity.ai.goal.LookAroundGoal;
 import net.minecraft.entity.ai.goal.LookAtEntityGoal;
 import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.mob.DrownedEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.world.World;
 
 import supercoder79.wavedefense.entity.MonsterModifier;
@@ -63,21 +61,6 @@ public final class WaveDrownedEntity extends DrownedEntity implements WaveEntity
         this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(this.getMonsterClass().maxHealth());
         this.setHealth((float) this.getMonsterClass().maxHealth());
         this.getAttributeInstance(EntityAttributes.GENERIC_FOLLOW_RANGE).setBaseValue(64d);
-    }
-
-    @Override
-    public int ironCount() {
-        return this.getMonsterClass().ironCount() + this.getMod().ironBonus;
-    }
-
-    @Override
-    public int goldCount() {
-        return this.getMonsterClass().goldCount();
-    }
-
-    @Override
-    public int monsterScore() {
-        return this.getMonsterClass().monsterPoints();
     }
 
     @Override

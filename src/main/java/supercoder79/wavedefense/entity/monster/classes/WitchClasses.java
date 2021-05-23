@@ -13,18 +13,18 @@ public class WitchClasses {
         }
 
         @Override
-        public int ironCount() {
-            return 6;
+        public int emeraldCount() {
+            return 2 + new Random().nextInt(2);
         }
 
         @Override
-        public int goldCount() {
-            return new Random().nextInt(6) == 0 ? 1 : 0;
-        }
-
-        @Override
-        public int monsterPoints() {
+        public int monsterScore() {
             return 10;
+        }
+
+        @Override
+        public int xp() {
+            return 3;
         }
 
         @Override

@@ -47,20 +47,6 @@ public class WaveCaveSpiderEntity extends CaveSpiderEntity implements WaveEntity
         return didAttack;
     }
 
-    @Override
-    public int ironCount() {
-        return this.getMonsterClass().ironCount() + this.getMod().ironBonus;
-    }
-
-    @Override
-    public int goldCount() {
-        return this.getMonsterClass().goldCount();
-    }
-
-    @Override
-    public int monsterScore() {
-        return this.getMonsterClass().monsterPoints();
-    }
 
     @Override
     public MonsterClass getMonsterClass() {

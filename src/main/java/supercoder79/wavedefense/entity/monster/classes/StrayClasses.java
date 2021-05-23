@@ -28,18 +28,18 @@ public final class StrayClasses {
         }
 
         @Override
-        public int goldCount() {
-            return 0;
-        }
-
-        @Override
-        public int monsterPoints() {
+        public int monsterScore() {
             return 3;
         }
 
         @Override
         public String name() {
             return "Stray";
+        }
+
+        @Override
+        public int xp() {
+            return 2;
         }
     };
 
@@ -54,7 +54,7 @@ public final class StrayClasses {
 
         @Override
         public int ironCount() {
-            return 16;
+            return 0;
         }
 
         @Override
@@ -63,8 +63,18 @@ public final class StrayClasses {
         }
 
         @Override
-        public int monsterPoints() {
+        public int emeraldCount() {
+            return 2 + new Random().nextInt(3);
+        }
+
+        @Override
+        public int monsterScore() {
             return 20;
+        }
+
+        @Override
+        public int xp() {
+            return 25;
         }
 
         @Override

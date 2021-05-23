@@ -13,7 +13,6 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Position;
 import net.minecraft.util.math.Vec3d;
 
-import net.minecraft.world.Heightmap;
 import supercoder79.wavedefense.entity.WaveEntity;
 import supercoder79.wavedefense.entity.monster.*;
 import supercoder79.wavedefense.entity.monster.classes.*;
@@ -102,9 +101,9 @@ public final class WdWaveSpawner {
 
     public boolean tick(long time) {
         long timeSinceStart = time - this.startTime - 1;
-        int mobTick = (int) (timeSinceStart / 5) + 1;
+        int mobTick = (int) (timeSinceStart / 2) + 1;
 
-        if (mobTick <= mobsToSpawn.size() && timeSinceStart % 5 == 0) {
+        if (mobTick <= mobsToSpawn.size() && timeSinceStart % 2 == 0) {
             if (spawnMonster(game.space.getWorld(), mobTick - 1)) {
                 WaveEntity entity = mobsToSpawn.get(mobTick - 1);
                 this.wave.onMonsterSpawned(entity.monsterScore());

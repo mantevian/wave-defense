@@ -22,7 +22,7 @@ public final class HuskClasses {
 
         @Override
         public int ironCount() {
-            return 1 + new Random().nextInt(2);
+            return 2;
         }
 
         @Override
@@ -31,8 +31,13 @@ public final class HuskClasses {
         }
 
         @Override
-        public int monsterPoints() {
+        public int monsterScore() {
             return 3;
+        }
+
+        @Override
+        public int xp() {
+            return 1;
         }
 
         @Override
@@ -83,17 +88,22 @@ public final class HuskClasses {
 
         @Override
         public int ironCount() {
-            return 5;
+            return 6;
         }
 
         @Override
         public int goldCount() {
-            return new Random().nextInt(6) == 0 ? 1 : 0;
+            return 0;
         }
 
         @Override
-        public int monsterPoints() {
+        public int monsterScore() {
             return 6;
+        }
+
+        @Override
+        public int xp() {
+            return 2;
         }
 
         @Override

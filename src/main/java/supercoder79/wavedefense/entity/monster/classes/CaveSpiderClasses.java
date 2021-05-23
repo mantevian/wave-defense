@@ -8,14 +8,16 @@ import java.util.Random;
 
 public class CaveSpiderClasses {
     public static final MonsterClass DEFAULT = new MonsterClass() {
+        int iron;
+
         @Override
         public void apply(MobEntity entity, MonsterModifier mod, Random random, int waveOrdinal) {
-
+            iron = 1 + new Random().nextInt(2);
         }
 
         @Override
         public int ironCount() {
-            return 1 + new Random().nextInt(2);
+            return iron;
         }
 
         @Override
@@ -24,8 +26,13 @@ public class CaveSpiderClasses {
         }
 
         @Override
-        public int monsterPoints() {
+        public int monsterScore() {
             return 2;
+        }
+
+        @Override
+        public int xp() {
+            return 1;
         }
 
         @Override

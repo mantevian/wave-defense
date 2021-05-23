@@ -82,21 +82,6 @@ public class WaveSummonerEntity extends SkeletonEntity implements WaveEntity {
     }
 
     @Override
-    public int ironCount() {
-        return this.getMonsterClass().ironCount() + this.getMod().ironBonus;
-    }
-
-    @Override
-    public int goldCount() {
-        return this.getMonsterClass().goldCount();
-    }
-
-    @Override
-    public int monsterScore() {
-        return this.getMonsterClass().monsterPoints();
-    }
-
-    @Override
     public WdActive getGame() {
         return game;
     }

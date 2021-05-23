@@ -10,11 +10,23 @@ import supercoder79.wavedefense.util.RandomCollection;
 public interface MonsterClass {
 	void apply(MobEntity entity, MonsterModifier mod, Random random, int waveOrdinal);
 
-	int ironCount();
+	default int ironCount() {
+		return 0;
+	}
 
-	int goldCount();
+	default int goldCount() {
+		return 0;
+	}
 
-	int monsterPoints();
+	default int emeraldCount() {
+		return 0;
+	}
+
+	default int xp() {
+		return 0;
+	}
+
+	int monsterScore();
 
 	default double maxHealth() {
 		return 20.0;

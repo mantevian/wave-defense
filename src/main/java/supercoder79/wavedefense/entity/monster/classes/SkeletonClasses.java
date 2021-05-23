@@ -26,13 +26,13 @@ public final class SkeletonClasses {
         }
 
         @Override
-        public int goldCount() {
-            return 0;
+        public int monsterScore() {
+            return 3;
         }
 
         @Override
-        public int monsterPoints() {
-            return 3;
+        public int xp() {
+            return 2;
         }
 
         @Override
@@ -54,7 +54,6 @@ public final class SkeletonClasses {
                 iron = EquipmentHelper.equipLeggings(waveOrdinal, random, iron, entity, -1);
             if (random.nextBoolean())
                 iron = EquipmentHelper.equipBoots(waveOrdinal, random, iron, entity, -1);
-
         }
 
         @Override
@@ -93,13 +92,13 @@ public final class SkeletonClasses {
         }
 
         @Override
-        public int goldCount() {
-            return new Random().nextInt(15) == 0 ? 1 : 0;
+        public int monsterScore() {
+            return 5;
         }
 
         @Override
-        public int monsterPoints() {
-            return 5;
+        public int xp() {
+            return 4;
         }
     };
 
@@ -168,24 +167,20 @@ public final class SkeletonClasses {
         }
 
         @Override
-        public int goldCount() {
-            return new Random().nextInt(8) == 0 ? 1 : 0;
+        public int monsterScore() {
+            return 5;
         }
 
         @Override
-        public int monsterPoints() {
-            return 5;
+        public int xp() {
+            return 4;
         }
     };
 
 
     public static final SkeletonClass SUMMONER = new SkeletonClass() {
-        private int iron;
-
         @Override
         public void apply(MobEntity entity, MonsterModifier mod, Random random, int waveOrdinal) {
-            iron = 12;
-
             ItemStack sword = new ItemStack(Items.GOLDEN_SWORD);
             sword.addEnchantment(Enchantments.SHARPNESS, 6);
             sword.addEnchantment(Enchantments.KNOCKBACK, 3);
@@ -202,7 +197,7 @@ public final class SkeletonClasses {
 
             entity.equipStack(EquipmentSlot.CHEST, chestplate);
 
-            EquipmentHelper.equipLeggings(waveOrdinal, random, iron, entity, 10);
+            EquipmentHelper.equipLeggings(waveOrdinal, random, 0, entity, 10);
         }
 
         @Override
@@ -247,17 +242,27 @@ public final class SkeletonClasses {
 
         @Override
         public int ironCount() {
-            return iron;
+            return 0;
         }
 
         @Override
         public int goldCount() {
-            return new Random().nextInt(2) + new Random().nextInt(2);
+            return 1;
         }
 
         @Override
-        public int monsterPoints() {
+        public int emeraldCount() {
+            return 2 + new Random().nextInt(3);
+        }
+
+        @Override
+        public int monsterScore() {
             return 30;
+        }
+
+        @Override
+        public int xp() {
+            return 25;
         }
     };
 }

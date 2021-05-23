@@ -13,15 +13,9 @@ public class PhantomClasses {
         public void apply(MobEntity entity, MonsterModifier mod, Random random, int waveOrdinal) {
 
         }
-
         @Override
         public int ironCount() {
-            return 2;
-        }
-
-        @Override
-        public int goldCount() {
-            return 0;
+            return 4;
         }
 
         @Override
@@ -30,8 +24,13 @@ public class PhantomClasses {
         }
 
         @Override
-        public int monsterPoints() {
+        public int monsterScore() {
             return 3;
+        }
+
+        @Override
+        public int xp() {
+            return 2;
         }
 
         @Override
@@ -48,12 +47,7 @@ public class PhantomClasses {
 
         @Override
         public int ironCount() {
-            return 4;
-        }
-
-        @Override
-        public int goldCount() {
-            return new Random().nextInt(6) == 0 ? 1 : 0;
+            return 12;
         }
 
         @Override
@@ -62,8 +56,13 @@ public class PhantomClasses {
         }
 
         @Override
-        public int monsterPoints() {
+        public int monsterScore() {
             return 5;
+        }
+
+        @Override
+        public int xp() {
+            return 4;
         }
 
         @Override
