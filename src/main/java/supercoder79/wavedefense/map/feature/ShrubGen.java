@@ -2,7 +2,7 @@ package supercoder79.wavedefense.map.feature;
 
 import java.util.Random;
 
-import xyz.nucleoid.plasmid.game.gen.MapGen;
+import xyz.nucleoid.substrate.gen.MapGen;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;

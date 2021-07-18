@@ -1,6 +1,5 @@
 package supercoder79.wavedefense.game;
 
-import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -9,6 +8,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtString;
+import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.TextColor;
@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public final class WdItemShop {
-    public static SimpleGui create(ServerPlayerEntity player, WdActive game) {
-        return ShopUi.create(player, new LiteralText("Item Shop"), shop -> {
+    public static NamedScreenHandlerFactory create(ServerPlayerEntity player, WdActive game) {
+        return (NamedScreenHandlerFactory) ShopUi.create(player, new LiteralText("Item Shop"), shop -> {
             WdPlayer wdPlayer = game.players.get(PlayerRef.of(player));
             List<WdConfig.ShopEntry> entries = game.config.shop.get(wdPlayer.openedShopPage);
 
@@ -335,9 +335,11 @@ public final class WdItemShop {
         for (int slot = 0; slot < inventory.size(); slot++) {
             ItemStack stack = inventory.getStack(slot);
             if (!stack.isEmpty() && predicate.test(stack)) {
-                int existingLevel = ItemUtil.getEnchantLevel(stack, enchantment);
+                int existingLevel = EnchantmentHelper.getLevel(enchantment, stack);
                 if (existingLevel != level) {
-                    ItemUtil.removeEnchant(stack, enchantment);
+                    Map<Enchantment, Integer> enchantments = EnchantmentHelper.get(stack);
+                    enchantments.remove(enchantment);
+                    EnchantmentHelper.set(EnchantmentHelper.get(stack), stack);
                     stack.addEnchantment(enchantment, level);
                 }
             }

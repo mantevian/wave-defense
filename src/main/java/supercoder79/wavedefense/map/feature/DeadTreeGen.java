@@ -5,7 +5,7 @@ import java.util.Objects;
 import java.util.Random;
 
 import com.google.common.collect.Lists;
-import xyz.nucleoid.plasmid.game.gen.MapGen;
+import xyz.nucleoid.substrate.gen.MapGen;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;

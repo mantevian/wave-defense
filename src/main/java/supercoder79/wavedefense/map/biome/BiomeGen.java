@@ -4,8 +4,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
-import xyz.nucleoid.plasmid.game.gen.MapGen;
-import xyz.nucleoid.plasmid.game.gen.feature.tree.PoplarTreeGen;
+import xyz.nucleoid.substrate.gen.MapGen;
+import xyz.nucleoid.substrate.gen.tree.PoplarTreeGen;
 
 import java.util.Random;
 

@@ -4,7 +4,7 @@ import java.util.Random;
 
 import supercoder79.wavedefense.map.biome.BiomeGen;
 import supercoder79.wavedefense.map.feature.SwampTreeGen;
-import xyz.nucleoid.plasmid.game.gen.MapGen;
+import xyz.nucleoid.substrate.gen.MapGen;
 
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;

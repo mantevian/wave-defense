@@ -1,18 +1,21 @@
 package supercoder79.wavedefense.entity.goal;
 
-import net.minecraft.entity.ai.TargetFinder;
 import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.entity.ai.goal.MoveToTargetPosGoal;
 import net.minecraft.entity.mob.PathAwareEntity;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.WorldView;
 import supercoder79.wavedefense.entity.WaveEntity;
 import supercoder79.wavedefense.game.WdActive;
 
 import java.util.EnumSet;
 
-public final class MoveTowardGameCenterGoal<T extends PathAwareEntity & WaveEntity> extends Goal {
+public final class MoveTowardGameCenterGoal<T extends PathAwareEntity & WaveEntity> extends MoveToTargetPosGoal {
     private final T entity;
 
     public MoveTowardGameCenterGoal(T entity) {
+        super(entity, 1.0, 64);
         this.entity = entity;
         this.setControls(EnumSet.of(Control.MOVE));
     }
@@ -28,14 +31,25 @@ public final class MoveTowardGameCenterGoal<T extends PathAwareEntity & WaveEnti
     }
 
     @Override
+    protected BlockPos getTargetPos() {
+        WdActive game = entity.getGame();
+        Vec3d center = game.guide.getCenterPos();
+        return new BlockPos.Mutable(center.x, center.y, center.z);
+    }
+
+    @Override
     public void start() {
         WdActive game = entity.getGame();
         Vec3d center = game.guide.getCenterPos();
-        Vec3d target = TargetFinder.findTargetTowards(entity, 15, 15, center);
 
-        if (target != null) {
-            entity.getNavigation().startMovingTo(target.x, target.y, target.z, 1.0);
+        if (center != null) {
+            entity.getNavigation().startMovingTo(center.x, center.y, center.z, 1.0);
         }
+    }
+
+    @Override
+    protected boolean isTargetPos(WorldView world, BlockPos pos) {
+        return false;
     }
 
     @Override

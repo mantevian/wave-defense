@@ -29,6 +29,7 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+import net.minecraft.world.GameRules;
 import supercoder79.wavedefense.entity.WaveEntity;
 import supercoder79.wavedefense.map.WdMap;
 import supercoder79.wavedefense.util.ASCIIProgressBar;
@@ -121,6 +122,11 @@ public final class WdActive {
             activity.listen(ProjectileHitEvent.ENTITY, active::onEntityHit);
             activity.listen(BlockUseEvent.EVENT, active::onUseBlock);
 
+            world.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(false, world.getServer());
+            world.getGameRules().get(GameRules.DO_MOB_LOOT).set(false, world.getServer());
+            world.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE).set(false, world.getServer());
+            world.getGameRules().get(GameRules.DO_WEATHER_CYCLE).set(false, world.getServer());
+            world.getGameRules().get(GameRules.DO_INSOMNIA).set(false, world.getServer());
         });
     }
 
@@ -221,7 +227,7 @@ public final class WdActive {
         ItemStack stack = player.getStackInHand(hand);
 
         if (stack.getItem() == Items.COMPASS) {
-            player.openHandledScreen((NamedScreenHandlerFactory) WdItemShop.create(player, this));
+            player.openHandledScreen(WdItemShop.create(player, this));
             return TypedActionResult.success(stack);
         }
 

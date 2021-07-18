@@ -3,13 +3,11 @@ package supercoder79.wavedefense.map.biome;
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import kdotjpg.opensimplex.OpenSimplexNoise;
 import net.minecraft.util.dynamic.RegistryLookupCodec;
 import net.minecraft.util.math.noise.SimplexNoiseSampler;
 import supercoder79.wavedefense.map.biome.impl.*;
 
 import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryLookupCodec;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.source.BiomeSource;
 import supercoder79.wavedefense.map.gen.WdWorldGenRandom;
@@ -53,10 +51,10 @@ public final class FakeBiomeSource extends BiomeSource {
 	}
 
 	public BiomeGen getRealBiome(int x, int z) {
-		double temperature = (temperatureNoise.eval(x / 320.0, z / 320.0) + 1) / 2;
-		temperature = temperature * 0.9 + (((roughnessNoise.eval(x / 72.0, z / 72.0) + 1) / 2) * 0.1);
+		double temperature = (temperatureNoise.sample(x / 320.0, z / 320.0) + 1) / 2;
+		temperature = temperature * 0.9 + (((roughnessNoise.sample(x / 72.0, z / 72.0) + 1) / 2) * 0.1);
 
-		double rainfall = (rainfallNoise.eval(x / 320.0, z / 320.0) + 1) / 2;
+		double rainfall = (rainfallNoise.sample(x / 320.0, z / 320.0) + 1) / 2;
 
 		if (temperature > 0.85) {
 			return DesertGen.INSTANCE;

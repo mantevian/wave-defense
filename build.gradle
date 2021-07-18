@@ -28,6 +28,8 @@ dependencies {
 
     modImplementation 'xyz.nucleoid:plasmid:0.5-pre1+1.17.1'
 
+    modImplementation 'xyz.nucleoid:substrate:0.1.2'
+
     modRuntime ("supercoder79:databreaker:0.2.7") {
         exclude module : "fabric-loader"
     }
