@@ -2,13 +2,12 @@ package supercoder79.wavedefense.game;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import xyz.nucleoid.plasmid.game.config.PlayerConfig;
+import xyz.nucleoid.plasmid.game.common.config.PlayerConfig;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class WdConfig {
-
     public static final Codec<WdConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             PlayerConfig.CODEC.fieldOf("players").forGetter(config -> config.playerConfig),
             Path.CODEC.fieldOf("path").forGetter(config -> config.path),

@@ -3,10 +3,10 @@ package supercoder79.wavedefense.map;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import supercoder79.wavedefense.game.WdConfig;
 import supercoder79.wavedefense.map.gen.WdChunkGenerator;
-import supercoder79.wavedefense.map.gen.WdPath;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
+import supercoder79.wavedefense.map.gen.WdPath;
 
 public final class WdMap {
 	public final WdPath path;

@@ -1,15 +1,14 @@
 package supercoder79.wavedefense.game;
 
+import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.*;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.potion.PotionUtil;
-import net.minecraft.potion.Potions;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.TextColor;
@@ -19,7 +18,6 @@ import xyz.nucleoid.plasmid.shop.Cost;
 import xyz.nucleoid.plasmid.shop.ShopEntry;
 import xyz.nucleoid.plasmid.shop.ShopUi;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
-import xyz.nucleoid.plasmid.util.ItemUtil;
 import xyz.nucleoid.plasmid.util.PlayerRef;
 
 import java.util.List;
@@ -27,8 +25,8 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public final class WdItemShop {
-    public static ShopUi create(ServerPlayerEntity player, WdActive game) {
-        return ShopUi.create(new LiteralText("Item Shop"), shop -> {
+    public static SimpleGui create(ServerPlayerEntity player, WdActive game) {
+        return ShopUi.create(player, new LiteralText("Item Shop"), shop -> {
             WdPlayer wdPlayer = game.players.get(PlayerRef.of(player));
             List<WdConfig.ShopEntry> entries = game.config.shop.get(wdPlayer.openedShopPage);
 
@@ -53,9 +51,9 @@ public final class WdItemShop {
                     itemToGive = new ItemStack(Registry.ITEM.get(id(entry.item.item)), entry.item.count);
 
                     if (!entry.potion.equals("")) {
-                        CompoundTag potionTag = new CompoundTag();
-                        potionTag.put("Potion", StringTag.of(entry.potion));
-                        itemToGive.setTag(potionTag);
+                        NbtCompound potionTag = new NbtCompound();
+                        potionTag.put("Potion", NbtString.of(entry.potion));
+                        itemToGive.setNbt(potionTag);
                     }
 
                     if (!entry.item.item.equals("air")) {
@@ -69,104 +67,82 @@ public final class WdItemShop {
                         String name = itemToUpgrade.getItem().toString().replace("minecraft:", "");
 
                         switch (name) {
-                            case "iron_sword":
+                            case "iron_sword" -> {
                                 currentLevel = 0;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.DIAMOND_SWORD).setUnbreakable().build();
-                                break;
-
-                            case "diamond_sword":
+                            }
+                            case "diamond_sword" -> {
                                 currentLevel = 1;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_SWORD).setUnbreakable().build();
-                                break;
-
-                            case "netherite_sword":
+                            }
+                            case "netherite_sword" -> {
                                 currentLevel = 2;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_SWORD).setUnbreakable().build();
-                                break;
-
-
-                            case "chainmail_helmet":
+                            }
+                            case "chainmail_helmet" -> {
                                 currentLevel = 0;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.IRON_HELMET).setUnbreakable().build();
-                                break;
-
-                            case "iron_helmet":
+                            }
+                            case "iron_helmet" -> {
                                 currentLevel = 1;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.DIAMOND_HELMET).setUnbreakable().build();
-                                break;
-
-                            case "diamond_helmet":
+                            }
+                            case "diamond_helmet" -> {
                                 currentLevel = 2;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_HELMET).setUnbreakable().build();
-                                break;
-
-                            case "netherite_helmet":
+                            }
+                            case "netherite_helmet" -> {
                                 currentLevel = 3;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_HELMET).setUnbreakable().build();
-                                break;
-
-
-                            case "chainmail_chestplate":
+                            }
+                            case "chainmail_chestplate" -> {
                                 currentLevel = 0;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.IRON_CHESTPLATE).setUnbreakable().build();
-                                break;
-
-                            case "iron_chestplate":
+                            }
+                            case "iron_chestplate" -> {
                                 currentLevel = 1;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.DIAMOND_CHESTPLATE).setUnbreakable().build();
-                                break;
-
-                            case "diamond_chestplate":
+                            }
+                            case "diamond_chestplate" -> {
                                 currentLevel = 2;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_CHESTPLATE).setUnbreakable().build();
-                                break;
-
-                            case "netherite_chestplate":
+                            }
+                            case "netherite_chestplate" -> {
                                 currentLevel = 3;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_CHESTPLATE).setUnbreakable().build();
-                                break;
-
-
-                            case "chainmail_leggings":
+                            }
+                            case "chainmail_leggings" -> {
                                 currentLevel = 0;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.IRON_LEGGINGS).setUnbreakable().build();
-                                break;
-
-                            case "iron_leggings":
+                            }
+                            case "iron_leggings" -> {
                                 currentLevel = 1;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.DIAMOND_LEGGINGS).setUnbreakable().build();
-                                break;
-
-                            case "diamond_leggings":
+                            }
+                            case "diamond_leggings" -> {
                                 currentLevel = 2;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_LEGGINGS).setUnbreakable().build();
-                                break;
-
-                            case "netherite_leggings":
+                            }
+                            case "netherite_leggings" -> {
                                 currentLevel = 3;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_LEGGINGS).setUnbreakable().build();
-                                break;
-
-
-                            case "chainmail_boots":
+                            }
+                            case "chainmail_boots" -> {
                                 currentLevel = 0;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.IRON_BOOTS).setUnbreakable().build();
-                                break;
-
-                            case "iron_boots":
+                            }
+                            case "iron_boots" -> {
                                 currentLevel = 1;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.DIAMOND_BOOTS).setUnbreakable().build();
-                                break;
-
-                            case "diamond_boots":
+                            }
+                            case "diamond_boots" -> {
                                 currentLevel = 2;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_BOOTS).setUnbreakable().build();
-                                break;
-
-                            case "netherite_boots":
+                            }
+                            case "netherite_boots" -> {
                                 currentLevel = 3;
                                 itemToReplaceWith = ItemStackBuilder.of(Items.NETHERITE_BOOTS).setUnbreakable().build();
-                                break;
+                            }
                         }
                     }
                 }
@@ -235,6 +211,7 @@ public final class WdItemShop {
                 }
 
                 int changePage = 0;
+                int upgradePointsCost = 0;
 
                 switch (entry.name) {
                     case "next_page":
@@ -247,22 +224,56 @@ public final class WdItemShop {
                         break;
                     case "display_stats":
                         displayItem = new ItemStack(Items.PLAYER_HEAD);
-                        CompoundTag skullTag = new CompoundTag();
-                        skullTag.put("SkullOwner", StringTag.of(player.getName().getString()));
-                        displayItem.setTag(skullTag);
-                        displayName = "Your stats";
-                        displayDescription = wdPlayer.mobKillsToString() + "\n\n" + wdPlayer.mobAssistsToString();
+                        NbtCompound skullTag = new NbtCompound();
+                        skullTag.put("SkullOwner", NbtString.of(player.getName().getString()));
+                        displayItem.setNbt(skullTag);
+                        displayName = "Your Stats";
+                        displayDescription = "Max Health: "
+                                + player.getAttributeBaseValue(EntityAttributes.GENERIC_MAX_HEALTH)
+                                + "\nMovement Speed: "
+                                + player.getAttributeBaseValue(EntityAttributes.GENERIC_MOVEMENT_SPEED)
+                                + "\nAttack Speed: "
+                                + player.getAttributeBaseValue(EntityAttributes.GENERIC_ATTACK_SPEED)
+                                + "\n\n"
+                                + wdPlayer.mobKillsToString()
+                                + "\n\n"
+                                + wdPlayer.mobAssistsToString();
                         break;
                     case "display_xp":
                         displayItem = new ItemStack(Items.EXPERIENCE_BOTTLE);
-                        displayName = "Your stats";
+                        displayName = "Your Stats";
                         displayDescription = "XP: " + player.totalExperience + "\nUpgrade Points: " + wdPlayer.upgradePoints + " / " + player.experienceLevel;
+                        break;
+                    case "upgrade_health":
+                        cost = Cost.free();
+                        displayItem = new ItemStack(Items.GOLDEN_CHESTPLATE);
+                        displayName = "Upgrade Shared Health";
+                        displayDescription = "+1 HP to every player\nCost: 5 Upgrade Points";
+                        upgradePointsCost = 5;
+                        break;
+                    case "upgrade_movement_speed":
+                        cost = Cost.free();
+                        displayItem = new ItemStack(Items.GOLDEN_BOOTS);
+                        displayName = "Upgrade Shared Movement Speed";
+                        displayDescription = "+0.004 Movement Speed to every player\nCost: 2 Upgrade Points";
+                        upgradePointsCost = 2;
+                        break;
+                    case "upgrade_attack_speed":
+                        cost = Cost.free();
+                        displayItem = new ItemStack(Items.GOLDEN_PICKAXE);
+                        displayName = "Upgrade Shared Attack Speed";
+                        displayDescription = "+0.02 Attack Speed to every player\nCost: 2 Upgrade Points";
+                        upgradePointsCost = 2;
                         break;
                 }
 
                 if (changePage != 0) {
                     cost = Cost.free();
                     displayItem = new ItemStack(Items.LIME_STAINED_GLASS_PANE);
+                }
+
+                if (wdPlayer.upgradePoints - upgradePointsCost < 0) {
+                    cost = Cost.no();
                 }
 
                 if (!itemToGive.getItem().equals(Items.AIR)) {
@@ -275,6 +286,7 @@ public final class WdItemShop {
                     ItemStack finalItemToEnchant = itemToEnchant;
                     int finalCurrentLevel = currentLevel;
                     int finalChangePage = changePage;
+                    int finalUpgradePointsCost = upgradePointsCost;
 
                     ShopEntry shopEntry = ShopEntry.ofIcon(displayItem)
                             .withName(new LiteralText(displayName))
@@ -284,8 +296,21 @@ public final class WdItemShop {
                                     replaceItem(player, stack -> stack.getItem().equals(finalItemToUpgrade.getItem()), finalItemToReplaceWith);
                                 } else if (shouldEnchantItem) {
                                     applyEnchantments(player, stack -> stack.getItem().equals(finalItemToEnchant.getItem()), Registry.ENCHANTMENT.get(id(entry.enchantment.enchantment)), finalCurrentLevel + 1);
-                                } else {
-                                    wdPlayer.openedShopPage += finalChangePage;
+                                }
+
+                                wdPlayer.openedShopPage += finalChangePage;
+                                wdPlayer.upgradePoints -= finalUpgradePointsCost;
+
+                                switch (entry.name) {
+                                    case "upgrade_health":
+                                        game.sharedHealth += 1;
+                                        break;
+                                    case "upgrade_movement_speed":
+                                        game.sharedSpeed += 0.004;
+                                        break;
+                                    case "upgrade_attack_speed":
+                                        game.sharedAttackSpeed += 0.02;
+                                        break;
                                 }
                             });
 
@@ -306,7 +331,7 @@ public final class WdItemShop {
     private static void applyEnchantments(ServerPlayerEntity player, Predicate<ItemStack> predicate, Enchantment enchantment, int level) {
         if (level <= 0) return;
 
-        PlayerInventory inventory = player.inventory;
+        PlayerInventory inventory = player.getInventory();
         for (int slot = 0; slot < inventory.size(); slot++) {
             ItemStack stack = inventory.getStack(slot);
             if (!stack.isEmpty() && predicate.test(stack)) {
@@ -320,7 +345,7 @@ public final class WdItemShop {
     }
 
     private static void replaceItem(ServerPlayerEntity player, Predicate<ItemStack> predicate, ItemStack newItem) {
-        PlayerInventory inventory = player.inventory;
+        PlayerInventory inventory = player.getInventory();
         for (int slot = 0; slot < inventory.size(); slot++) {
             ItemStack stack = inventory.getStack(slot);
             if (!stack.isEmpty() && predicate.test(stack)) {
@@ -333,7 +358,7 @@ public final class WdItemShop {
     }
 
     private static ItemStack getFirstInInventory(ServerPlayerEntity player, Predicate<ItemStack> predicate) {
-        PlayerInventory inventory = player.inventory;
+        PlayerInventory inventory = player.getInventory();
         for (int slot = 0; slot < inventory.size(); slot++) {
             ItemStack stack = inventory.getStack(slot);
             if (!stack.isEmpty() && predicate.test(stack)) {

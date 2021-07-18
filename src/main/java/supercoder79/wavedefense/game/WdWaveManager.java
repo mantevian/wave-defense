@@ -7,7 +7,6 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.system.CallbackI;
 import xyz.nucleoid.plasmid.game.player.PlayerSet;
 
 public final class WdWaveManager {
@@ -58,8 +57,8 @@ public final class WdWaveManager {
                         ));
 
             for (PlayerEntity player : players) {
-                player.inventory.insertStack(new ItemStack(Items.IRON_INGOT, survivalBonus));
-                player.inventory.insertStack(new ItemStack(Items.GOLD_INGOT, survivalGold));
+                player.getInventory().insertStack(new ItemStack(Items.IRON_INGOT, survivalBonus));
+                player.getInventory().insertStack(new ItemStack(Items.GOLD_INGOT, survivalGold));
             }
 
             activeWave = null;

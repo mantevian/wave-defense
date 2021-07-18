@@ -6,7 +6,7 @@ import net.minecraft.entity.mob.SilverfishEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.math.BlockPos;
 import supercoder79.wavedefense.entity.WaveEntity;
-import supercoder79.wavedefense.entity.monster.SummonedSilverfishEntity;
+import supercoder79.wavedefense.entity.monster.SummonnedSilverfishEntity;
 import supercoder79.wavedefense.entity.monster.waveentity.WaveSummonerEntity;
 
 import java.util.EnumSet;
@@ -31,7 +31,7 @@ public final class SummonGoal<T extends WaveSummonerEntity & WaveEntity> extends
     public void start() {
         entity.summonTimer = 80;
         entity.handSwingTimer = 10;
-        SilverfishEntity silverfish = new SummonedSilverfishEntity(EntityType.SILVERFISH, entity.getEntityWorld());
+        SilverfishEntity silverfish = new SummonnedSilverfishEntity(EntityType.SILVERFISH, entity.getEntityWorld());
         BlockPos pos = entity.getBlockPos();
         Random random = new Random();
         silverfish.refreshPositionAndAngles(pos.add(random.nextInt(5) - 2, 2, random.nextInt(5) - 2), 0, 0);

@@ -13,6 +13,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3f;
 import net.minecraft.world.World;
 import supercoder79.wavedefense.entity.MonsterModifier;
 import supercoder79.wavedefense.entity.WaveEntity;
@@ -126,7 +127,7 @@ public final class WaveWitchEntity extends WitchEntity implements WaveEntity {
         }
 
         ((ServerWorld) world).spawnParticles(
-                new DustParticleEffect(red, green, blue, scale + stateTimer / 150f),
+                new DustParticleEffect(new Vec3f(red, green, blue), scale + stateTimer / 150f),
                 this.getX(), this.getY() + particleSpawnY + 0.3, this.getZ(),
                 2, 0.2, 0.0, 0.2, 0.1
         );

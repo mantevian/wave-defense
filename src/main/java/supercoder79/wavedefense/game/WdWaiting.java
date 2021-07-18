@@ -1,109 +1,89 @@
 package supercoder79.wavedefense.game;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.LiteralText;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameMode;
 import supercoder79.wavedefense.map.WdMap;
 import supercoder79.wavedefense.map.WdMapGenerator;
-import xyz.nucleoid.fantasy.BubbleWorldConfig;
-import xyz.nucleoid.fantasy.BubbleWorldSpawner;
+import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.plasmid.game.GameOpenContext;
 import xyz.nucleoid.plasmid.game.GameOpenProcedure;
+import xyz.nucleoid.plasmid.game.GameResult;
 import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.GameWaitingLobby;
-import xyz.nucleoid.plasmid.game.StartResult;
-import xyz.nucleoid.plasmid.game.event.AttackEntityListener;
-import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
-import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
-import xyz.nucleoid.plasmid.game.event.RequestStartListener;
-import xyz.nucleoid.plasmid.game.event.UseBlockListener;
-import xyz.nucleoid.plasmid.game.event.UseItemListener;
-import xyz.nucleoid.plasmid.game.rule.GameRule;
-import xyz.nucleoid.plasmid.game.rule.RuleResult;
+import xyz.nucleoid.plasmid.game.common.GameWaitingLobby;
+import xyz.nucleoid.plasmid.game.event.GameActivityEvents;
+import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
+import xyz.nucleoid.plasmid.game.player.PlayerOffer;
+import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
+import xyz.nucleoid.plasmid.game.rule.GameRuleType;
+import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
+import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
 public final class WdWaiting {
-	private final GameSpace world;
+	private final GameSpace space;
+	private final ServerWorld world;
 	private final WdMap map;
 	private final WdConfig config;
 
 	private final WdSpawnLogic spawnLogic;
 
-	private WdWaiting(GameSpace world, WdMap map, WdConfig config) {
+	private WdWaiting(GameSpace space, ServerWorld world, WdMap map, WdConfig config) {
+		this.space = space;
 		this.world = world;
 		this.map = map;
 		this.config = config;
-
-		this.spawnLogic = new WdSpawnLogic(world, config);
+		this.spawnLogic = new WdSpawnLogic(space, world, config);
 	}
 
 	public static GameOpenProcedure open(GameOpenContext<WdConfig> context) {
 		WdMapGenerator generator = new WdMapGenerator();
-		WdConfig config = context.getConfig();
+		WdConfig config = context.config();
 
 		WdMap map = generator.build(config);
-		BubbleWorldConfig worldConfig = new BubbleWorldConfig()
-				.setGenerator(map.chunkGenerator(context.getServer()))
-				.setDefaultGameMode(GameMode.SPECTATOR)
-				.setSpawner(BubbleWorldSpawner.atSurface(0, 0))
+		RuntimeWorldConfig worldConfig = new RuntimeWorldConfig()
+				.setGenerator(map.chunkGenerator(context.server()))
 				.setTimeOfDay(18000)
 				.setDifficulty(Difficulty.NORMAL);
 
-		return context.createOpenProcedure(worldConfig, (game) -> {
-			WdWaiting waiting = new WdWaiting(game.getSpace(), map, config);
-			GameWaitingLobby.applyTo(game, context.getConfig().playerConfig);
+		return context.openWithWorld(worldConfig, (game, world) -> {
+			WdWaiting waiting = new WdWaiting(game.getGameSpace(), world, map, config);
+			GameWaitingLobby.applyTo(game, config.playerConfig);
 
-			game.setRule(GameRule.CRAFTING, RuleResult.DENY);
-			game.setRule(GameRule.PORTALS, RuleResult.DENY);
-			game.setRule(GameRule.PVP, RuleResult.DENY);
-			game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
-			game.setRule(GameRule.HUNGER, RuleResult.DENY);
+			game.deny(GameRuleType.CRAFTING);
+			game.deny(GameRuleType.PORTALS);
+			game.deny(GameRuleType.PVP);
+			game.deny(GameRuleType.FALL_DAMAGE);
+			game.deny(GameRuleType.HUNGER);
+			game.deny(GameRuleType.THROW_ITEMS);
+			game.deny(GameRuleType.INTERACTION);
 
-			game.on(RequestStartListener.EVENT, waiting::requestStart);
+			game.listen(GameActivityEvents.REQUEST_START, waiting::requestStart);
 
-			game.on(PlayerAddListener.EVENT, waiting::addPlayer);
-			game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
-			game.on(AttackEntityListener.EVENT, waiting::onAttackEntity);
-			game.on(UseBlockListener.EVENT, waiting::onUseBlock);
-			game.on(UseItemListener.EVENT, waiting::onUseItem);
+			game.listen(GamePlayerEvents.OFFER, waiting::offerPlayer);
+			game.listen(PlayerDamageEvent.EVENT, (player, source, amount) -> ActionResult.FAIL);
+			game.listen(PlayerDeathEvent.EVENT, (player, source) -> ActionResult.FAIL);
 		});
 	}
 
-	private ActionResult onAttackEntity(ServerPlayerEntity attacker, Hand hand, Entity attacked, EntityHitResult hitResult) {
-		return ActionResult.SUCCESS;
+	private GameResult requestStart() {
+		WdActive.open(this.space, this.world, this.map, this.config);
+		return GameResult.ok();
 	}
 
-	private ActionResult onUseBlock(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
-		return ActionResult.SUCCESS;
-	}
+	private PlayerOfferResult offerPlayer(PlayerOffer offer) {
+		var spawn = WdSpawnLogic.findSurfaceAround(Vec3d.ZERO, world, this.config);
+		if (spawn == null) {
+			return offer.reject(new LiteralText("No spawn defined on map!"));
+		}
 
-	private TypedActionResult<ItemStack> onUseItem(ServerPlayerEntity player, Hand hand) {
-		return TypedActionResult.success(player.getStackInHand(hand));
-	}
-
-	private StartResult requestStart() {
-		WdActive.open(this.world, this.map, this.config);
-		return StartResult.OK;
-	}
-
-	private void addPlayer(ServerPlayerEntity player) {
-		this.spawnPlayer(player);
-	}
-
-	private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
-		this.spawnPlayer(player);
-		return ActionResult.FAIL;
-	}
-
-	private void spawnPlayer(ServerPlayerEntity player) {
-		this.spawnLogic.resetPlayer(player, GameMode.ADVENTURE);
-		this.spawnLogic.spawnPlayer(player);
+		return offer.accept(this.world, Vec3d.ofCenter(spawn))
+				.and(() -> {
+					var player = offer.player();
+					this.spawnLogic.resetPlayer(player, GameMode.ADVENTURE);
+					this.spawnLogic.spawnPlayer(player);
+				});
 	}
 }

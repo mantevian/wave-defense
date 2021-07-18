@@ -12,6 +12,7 @@ import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
@@ -28,25 +29,32 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
-import org.apache.logging.log4j.core.jmx.Server;
 import supercoder79.wavedefense.entity.WaveEntity;
 import supercoder79.wavedefense.map.WdMap;
 import supercoder79.wavedefense.util.ASCIIProgressBar;
+import xyz.nucleoid.plasmid.game.GameCloseReason;
 import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.event.*;
-import xyz.nucleoid.plasmid.game.player.JoinResult;
+import xyz.nucleoid.plasmid.game.common.GlobalWidgets;
+import xyz.nucleoid.plasmid.game.event.GameActivityEvents;
+import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
 import xyz.nucleoid.plasmid.game.player.MutablePlayerSet;
+import xyz.nucleoid.plasmid.game.player.PlayerOffer;
+import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
 import xyz.nucleoid.plasmid.game.player.PlayerSet;
-import xyz.nucleoid.plasmid.game.rule.GameRule;
-import xyz.nucleoid.plasmid.game.rule.RuleResult;
+import xyz.nucleoid.plasmid.game.rule.GameRuleType;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 import xyz.nucleoid.plasmid.util.PlayerRef;
-import xyz.nucleoid.plasmid.widget.GlobalWidgets;
+import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
+import xyz.nucleoid.stimuli.event.item.ItemUseEvent;
+import xyz.nucleoid.stimuli.event.player.PlayerAttackEntityEvent;
+import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
+import xyz.nucleoid.stimuli.event.projectile.ProjectileHitEvent;
 
 import java.util.*;
 
 public final class WdActive {
     public final GameSpace space;
+    public final ServerWorld world;
     public final WdMap map;
     public final WdConfig config;
     private final MutablePlayerSet participants;
@@ -55,22 +63,22 @@ public final class WdActive {
     public final HashMap<PlayerRef, WdPlayer> players = new HashMap<>();
     private final Set<BlockPos> openedChests = new HashSet<>();
     public final WdBar bar;
-
     public final WdGuide guide;
-
     private long gameCloseTick = Long.MAX_VALUE;
-
     public final int groupSize;
-
     public int averageGroupSize;
+    public int sharedHealth;
+    public double sharedSpeed;
+    public double sharedAttackSpeed;
 
-    private WdActive(GameSpace space, WdMap map, WdConfig config, MutablePlayerSet participants, GlobalWidgets widgets) {
+    private WdActive(GameSpace space, ServerWorld world, WdMap map, WdConfig config, MutablePlayerSet participants, GlobalWidgets widgets) {
         this.space = space;
+        this.world = world;
         this.map = map;
         this.config = config;
         this.participants = participants;
 
-        this.spawnLogic = new WdSpawnLogic(this.space, config);
+        this.spawnLogic = new WdSpawnLogic(this.space, this.world, config);
         this.waveManager = new WdWaveManager(this);
         this.bar = WdBar.create(widgets);
 
@@ -78,40 +86,50 @@ public final class WdActive {
 
         this.groupSize = participants.size();
         this.averageGroupSize = groupSize;
+
+        this.sharedHealth = 20;
+        this.sharedSpeed = 0.1;
+        this.sharedAttackSpeed = 4;
     }
 
-    public static void open(GameSpace world, WdMap map, WdConfig config) {
-        world.openGame(game -> {
-            GlobalWidgets widgets = new GlobalWidgets(game);
-            WdActive active = new WdActive(world, map, config, (MutablePlayerSet) world.getPlayers().copy(), widgets);
+    public static void open(GameSpace space, ServerWorld world, WdMap map, WdConfig config) {
+        space.setActivity(space.getSourceConfig(), activity -> {
+            GlobalWidgets widgets = GlobalWidgets.addTo(activity);
+            WdActive active = new WdActive(space, world, map, config, space.getPlayers().copy(space.getServer()), widgets);
 
-            game.setRule(GameRule.CRAFTING, RuleResult.ALLOW);
-            game.setRule(GameRule.PORTALS, RuleResult.DENY);
-            game.setRule(GameRule.PVP, RuleResult.DENY);
-            game.setRule(GameRule.BLOCK_DROPS, RuleResult.ALLOW);
-            game.setRule(GameRule.FALL_DAMAGE, RuleResult.ALLOW);
-            game.setRule(GameRule.HUNGER, RuleResult.ALLOW);
-            game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
-            game.setRule(GameRule.INTERACTION, RuleResult.ALLOW);
+            activity.deny(GameRuleType.CRAFTING);
+            activity.deny(GameRuleType.BLOCK_DROPS);
+            activity.deny(GameRuleType.PVP);
+            activity.deny(GameRuleType.PORTALS);
+            activity.deny(GameRuleType.THROW_ITEMS);
 
-            game.on(GameOpenListener.EVENT, active::open);
-            game.on(OfferPlayerListener.EVENT, player -> JoinResult.ok());
-            game.on(PlayerAddListener.EVENT, active::addPlayer);
-            game.on(PlayerRemoveListener.EVENT, active::removePlayer);
+            activity.allow(GameRuleType.FALL_DAMAGE);
+            activity.allow(GameRuleType.HUNGER);
+            activity.allow(GameRuleType.INTERACTION);
 
-            game.on(GameTickListener.EVENT, active::tick);
-            game.on(UseItemListener.EVENT, active::onUseItem);
+            activity.listen(GameActivityEvents.ENABLE, active::onEnable);
+            activity.listen(GamePlayerEvents.OFFER, active::offerPlayer);
+            activity.listen(GamePlayerEvents.ADD, active::addPlayer);
+            activity.listen(GamePlayerEvents.REMOVE, active::removePlayer);
 
-            game.on(PlayerDeathListener.EVENT, active::onPlayerDeath);
-            game.on(EntityDeathListener.EVENT, active::onEntityDeath);
-            game.on(AttackEntityListener.EVENT, active::onEntityAttack);
-            game.on(EntityHitListener.EVENT, active::onEntityHit);
-            game.on(UseBlockListener.EVENT, active::onUseBlock);
+            activity.listen(GameActivityEvents.TICK, active::tick);
+            activity.listen(ItemUseEvent.EVENT, active::onUseItem);
+
+            activity.listen(PlayerDeathEvent.EVENT, active::onPlayerDeath);
+            activity.listen(PlayerDeathEvent.EVENT, active::onEntityDeath);
+            activity.listen(PlayerAttackEntityEvent.EVENT, active::onEntityAttack);
+            activity.listen(ProjectileHitEvent.ENTITY, active::onEntityHit);
+            activity.listen(BlockUseEvent.EVENT, active::onUseBlock);
 
         });
     }
 
-    private void open() {
+    private PlayerOfferResult offerPlayer(PlayerOffer offer) {
+        return offer.accept(this.world, Vec3d.ofCenter(WdSpawnLogic.findSurfaceAround(Vec3d.ZERO, world, this.config)))
+                .and(() -> offer.player().changeGameMode(GameMode.SPECTATOR));
+    }
+
+    private void onEnable() {
         for (ServerPlayerEntity player : this.participants) {
             this.spawnParticipant(player);
         }
@@ -126,11 +144,11 @@ public final class WdActive {
     }
 
     private void tick() {
-        ServerWorld world = this.space.getWorld();
+        ServerWorld world = this.world;
         long time = world.getTime();
 
         if (time > gameCloseTick) {
-            this.space.close();
+            this.space.close(GameCloseReason.ERRORED);
             return;
         }
 
@@ -151,19 +169,12 @@ public final class WdActive {
                         for (int y = 0; y <= 2; y++) {
 
                             BlockPos local = mutable.add(x, y, z);
-                            if (this.space.getWorld().getBlockState(local).isOf(Blocks.CHEST)) {
+                            if (this.world.getBlockState(local).isOf(Blocks.CHEST)) {
                                 if (!this.openedChests.contains(local)) {
                                     this.participants.forEach((participant) -> {
                                         participant.sendMessage(new LiteralText(player.getEntityName() + " has found a loot chest!"), false);
-
-                                        if (new Random().nextInt(4) == 0) {
-                                            participant.sendMessage(new LiteralText("You recieved 6 iron and 1 gold!"), false);
-                                            participant.inventory.insertStack(new ItemStack(Items.IRON_INGOT, 6));
-                                            participant.inventory.insertStack(new ItemStack(Items.GOLD_INGOT, 1));
-                                        } else {
-                                            participant.sendMessage(new LiteralText("You recieved 12 iron!"), false);
-                                            participant.inventory.insertStack(new ItemStack(Items.IRON_INGOT, 12));
-                                        }
+                                        participant.sendMessage(new LiteralText("You received 16 iron!"), false);
+                                        participant.getInventory().insertStack(new ItemStack(Items.IRON_INGOT, 16));
                                     });
 
                                     // Change glowstone to obsidian
@@ -191,14 +202,17 @@ public final class WdActive {
 
                     entity.setCustomName(name.append(" ").append(healthBar));
                 } else entity.setCustomName(name);
-            } else if (entity instanceof PlayerEntity) {
-                PlayerEntity player = (PlayerEntity) entity;
+            } else if (entity instanceof PlayerEntity player) {
                 WdPlayer wdPlayer = players.get(PlayerRef.of(player));
                 if (player.experienceLevel > wdPlayer.totalXPLevels) {
-                    wdPlayer.upgradePoints++;
+                    wdPlayer.upgradePoints += player.experienceLevel - wdPlayer.totalXPLevels;
                 }
 
                 wdPlayer.totalXPLevels = player.experienceLevel;
+
+                player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(sharedHealth);
+                player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(sharedSpeed);
+                player.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_SPEED).setBaseValue(sharedAttackSpeed);
             }
         }
     }
@@ -207,7 +221,7 @@ public final class WdActive {
         ItemStack stack = player.getStackInHand(hand);
 
         if (stack.getItem() == Items.COMPASS) {
-            player.openHandledScreen(WdItemShop.create(player, this));
+            player.openHandledScreen((NamedScreenHandlerFactory) WdItemShop.create(player, this));
             return TypedActionResult.success(stack);
         }
 
@@ -215,17 +229,14 @@ public final class WdActive {
     }
 
     private ActionResult onEntityDeath(LivingEntity entity, DamageSource source) {
-        if (entity instanceof WaveEntity) {
-            WaveEntity waveEntity = (WaveEntity) entity;
+        if (entity instanceof WaveEntity waveEntity) {
             WdWave activeWave = waveManager.getActiveWave();
             if (activeWave != null) {
                 activeWave.onMonsterKilled(waveEntity.monsterScore());
 
-                if (source.getAttacker() instanceof ServerPlayerEntity) {
-                    ServerPlayerEntity player = (ServerPlayerEntity) source.getAttacker();
-
-                    player.inventory.insertStack(new ItemStack(Items.IRON_INGOT, waveEntity.ironCount()));
-                    player.inventory.insertStack(new ItemStack(Items.GOLD_INGOT, waveEntity.goldCount()));
+                if (source.getAttacker() instanceof ServerPlayerEntity player) {
+                    player.getInventory().insertStack(new ItemStack(Items.IRON_INGOT, waveEntity.ironCount()));
+                    player.getInventory().insertStack(new ItemStack(Items.GOLD_INGOT, waveEntity.goldCount()));
                     player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1.0f);
                     player.addExperience(waveEntity.xp());
                     if (waveEntity.ironCount() > 0) {
@@ -236,24 +247,24 @@ public final class WdActive {
                     }
                     players.get(PlayerRef.of(player)).addMobKill(waveEntity.getMonsterClass().name());
 
-                    Random random = space.getWorld().random;
+                    Random random = world.random;
 
                     for (int i = 0; i < waveEntity.emeraldCount(); i++) {
                         double x = random.nextDouble();
                         double y = random.nextDouble();
                         double z = random.nextDouble();
-                        ItemEntity itemEntity = new ItemEntity(space.getWorld(), entity.getX() + x, entity.getY() + y, entity.getZ() + z, new ItemStack(Items.EMERALD));
+                        ItemEntity itemEntity = new ItemEntity(world, entity.getX() + x, entity.getY() + y, entity.getZ() + z, new ItemStack(Items.EMERALD));
                         itemEntity.addVelocity(z * 0.3, 0.2, z * 0.3);
-                        space.getWorld().spawnEntity(itemEntity);
+                        world.spawnEntity(itemEntity);
                     }
 
-                    for (ServerPlayerEntity p : space.getWorld().getPlayers()) {
+                    for (ServerPlayerEntity p : world.getPlayers()) {
 
                         if (waveEntity.getContribution(PlayerRef.of(p)) >= waveEntity.totalContribution() / 4
                                 && !p.equals(player)) {
                             int assistedIron = (int) ((Math.floor(waveEntity.ironCount() / 4d) + waveEntity.goldCount() * 4) * (waveEntity.getContribution(PlayerRef.of(p)) / waveEntity.totalContribution()));
                             if (assistedIron > 0) {
-                                p.inventory.insertStack(new ItemStack(Items.IRON_INGOT, assistedIron));
+                                p.getInventory().insertStack(new ItemStack(Items.IRON_INGOT, assistedIron));
                                 p.sendMessage(new LiteralText("+" + assistedIron + " iron for assisting a kill of " + waveEntity.getMonsterClass().name()).styled(style -> style.withColor(TextColor.parse("gray"))), false);
                                 players.get(PlayerRef.of(player)).addMobAssist(waveEntity.getMonsterClass().name());
                             }
@@ -269,8 +280,7 @@ public final class WdActive {
     }
 
     private ActionResult onEntityAttack(ServerPlayerEntity player, Hand hand, Entity entity, EntityHitResult result) {
-        if (entity instanceof WaveEntity && result != null) {
-            WaveEntity waveEntity = (WaveEntity) entity;
+        if (entity instanceof WaveEntity waveEntity && result != null) {
             LivingEntity newEntity = (LivingEntity) result.getEntity();
 
             WdWave activeWave = waveManager.getActiveWave();
@@ -305,7 +315,7 @@ public final class WdActive {
             players.sendMessage(new LiteralText("You made it to wave " + waveManager.getWaveOrdinal() + ".").formatted(Formatting.DARK_RED));
 
             // Close game in 10 secs
-            this.gameCloseTick = this.space.getWorld().getTime() + (10 * 20);
+            this.gameCloseTick = this.world.getTime() + (10 * 20);
         }
 
         return ActionResult.FAIL;
@@ -313,12 +323,12 @@ public final class WdActive {
 
     // TODO: this doesn't work. The logic has been moved to tick() as a hacky workaround.
     private ActionResult onUseBlock(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
-        if (this.space.getWorld().getBlockState(hitResult.getBlockPos()).isOf(Blocks.CHEST)) {
+        if (this.world.getBlockState(hitResult.getBlockPos()).isOf(Blocks.CHEST)) {
             if (!this.openedChests.contains(hitResult.getBlockPos())) {
                 for (ServerPlayerEntity participant : this.participants) {
                     participant.sendMessage(new LiteralText(player.getDisplayName() + " has found a loot chest!"), false);
                     participant.sendMessage(new LiteralText("You recieved 12 iron."), false);
-                    participant.inventory.insertStack(new ItemStack(Items.IRON_INGOT, 12));
+                    participant.getInventory().insertStack(new ItemStack(Items.IRON_INGOT, 12));
                     participant.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
                 }
 
@@ -336,46 +346,46 @@ public final class WdActive {
         this.spawnLogic.spawnPlayer(player);
         this.guide.onAddPlayer(player);
 
-        player.inventory.insertStack(0,
+        player.getInventory().insertStack(0,
                 ItemStackBuilder.of(Items.IRON_SWORD)
                         .setUnbreakable()
                         .build()
         );
 
-        player.inventory.insertStack(1,
+        player.getInventory().insertStack(1,
                 ItemStackBuilder.of(Items.BOW)
                         .setUnbreakable()
                         .build()
         );
 
-        player.inventory.insertStack(2,
+        player.getInventory().insertStack(2,
                 ItemStackBuilder.of(Items.CROSSBOW)
                         .setUnbreakable()
                         .build()
         );
 
-        player.inventory.insertStack(3,
+        player.getInventory().insertStack(3,
                 ItemStackBuilder.of(Items.COOKED_BEEF)
                         .setCount(8)
                         .build()
         );
 
-        player.inventory.insertStack(4,
+        player.getInventory().insertStack(4,
                 ItemStackBuilder.of(Items.ARROW)
                         .setCount(8)
                         .build()
         );
 
-        player.inventory.insertStack(8,
+        player.getInventory().insertStack(8,
                 ItemStackBuilder.of(Items.COMPASS)
                         .setName(new LiteralText("Item Shop"))
                         .build()
         );
 
-        player.inventory.armor.set(3, ItemStackBuilder.of(Items.CHAINMAIL_HELMET).setUnbreakable().build());
-        player.inventory.armor.set(2, ItemStackBuilder.of(Items.CHAINMAIL_CHESTPLATE).setUnbreakable().build());
-        player.inventory.armor.set(1, ItemStackBuilder.of(Items.CHAINMAIL_LEGGINGS).setUnbreakable().build());
-        player.inventory.armor.set(0, ItemStackBuilder.of(Items.CHAINMAIL_BOOTS).setUnbreakable().build());
+        player.getInventory().armor.set(3, ItemStackBuilder.of(Items.CHAINMAIL_HELMET).setUnbreakable().build());
+        player.getInventory().armor.set(2, ItemStackBuilder.of(Items.CHAINMAIL_CHESTPLATE).setUnbreakable().build());
+        player.getInventory().armor.set(1, ItemStackBuilder.of(Items.CHAINMAIL_LEGGINGS).setUnbreakable().build());
+        player.getInventory().armor.set(0, ItemStackBuilder.of(Items.CHAINMAIL_BOOTS).setUnbreakable().build());
 
         players.put(PlayerRef.of(player), new WdPlayer());
     }
@@ -390,7 +400,7 @@ public final class WdActive {
 
         PlayerSet players = this.space.getPlayers();
         players.sendMessage(message);
-        players.sendSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP);
+        players.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP);
 
         this.spawnSpectator(player);
     }

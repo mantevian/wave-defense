@@ -39,7 +39,7 @@ public interface BiomeGen {
 	}
 
 	default BlockState pathState() {
-		return Blocks.GRASS_PATH.getDefaultState();
+		return Blocks.DIRT_PATH.getDefaultState();
 	}
 
 	default BlockState underState() {

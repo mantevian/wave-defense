@@ -1,10 +1,5 @@
 package supercoder79.wavedefense.map.gen;
 
-import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.DynamicOps;
-import kdotjpg.opensimplex.OpenSimplexNoise;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.MinecraftServer;
@@ -13,6 +8,7 @@ import net.minecraft.structure.StructureManager;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.noise.SimplexNoiseSampler;
 import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.ChunkRegion;
@@ -27,24 +23,19 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ProtoChunk;
 import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.StructureAccessor;
-import net.minecraft.world.gen.feature.DefaultFeatureConfig;
-import net.minecraft.world.gen.feature.FeatureConfig;
-import net.minecraft.world.gen.feature.IceSpikeFeature;
 import supercoder79.wavedefense.game.WdConfig;
 import supercoder79.wavedefense.map.WdMap;
-import supercoder79.wavedefense.map.biome.BiomeGen;
 import supercoder79.wavedefense.map.biome.FakeBiomeSource;
 import supercoder79.wavedefense.map.feature.*;
-import xyz.nucleoid.plasmid.game.gen.feature.GrassGen;
 import xyz.nucleoid.plasmid.game.world.generator.GameChunkGenerator;
 
 import java.util.Random;
 
 public final class WdChunkGenerator extends GameChunkGenerator {
     private final WdHeightSampler heightSampler;
-    private final OpenSimplexNoise pathNoise;
-    private final OpenSimplexNoise detailNoise;
-    private final OpenSimplexNoise erosionNoise;
+    private final SimplexNoiseSampler pathNoise;
+    private final SimplexNoiseSampler detailNoise;
+    private final SimplexNoiseSampler erosionNoise;
 
     private final WdConfig config;
     private final WdMap map;
@@ -68,9 +59,9 @@ public final class WdChunkGenerator extends GameChunkGenerator {
         Random random = new Random();
         this.biomeSource = new FakeBiomeSource(server.getRegistryManager().get(Registry.BIOME_KEY), random.nextLong());
         this.heightSampler = new WdHeightSampler(map.path, biomeSource, random.nextLong());
-        this.pathNoise = new OpenSimplexNoise(random.nextLong());
-        this.detailNoise = new OpenSimplexNoise(random.nextLong());
-        this.erosionNoise = new OpenSimplexNoise(random.nextLong());
+        this.pathNoise = new SimplexNoiseSampler(new WdWorldGenRandom());
+        this.detailNoise = new SimplexNoiseSampler(new WdWorldGenRandom());
+        this.erosionNoise = new SimplexNoiseSampler(new WdWorldGenRandom());
 
         this.map = map;
         this.pathRadius = map.config.path.radius;
@@ -203,8 +194,8 @@ public final class WdChunkGenerator extends GameChunkGenerator {
         BlockPos.Mutable mutable = new BlockPos.Mutable();
         Random random = new Random();
 
-        int chunkX = region.getCenterChunkX() * 16;
-        int chunkZ = region.getCenterChunkZ() * 16;
+        int chunkX = region.getCenterPos().getCenterX() * 16;
+        int chunkZ = region.getCenterPos().getCenterZ() * 16;
 
         BiomeGen biome = biomeSource.getRealBiome(chunkX + 8, chunkZ + 8);
 

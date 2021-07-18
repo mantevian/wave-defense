@@ -2,12 +2,10 @@ package supercoder79.wavedefense.map;
 
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
-import net.minecraft.util.Util;
 import supercoder79.wavedefense.game.WdConfig;
 import supercoder79.wavedefense.map.gen.WdPath;
 
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
 
 public final class WdMapGenerator {
     public WdMap build(WdConfig config) {

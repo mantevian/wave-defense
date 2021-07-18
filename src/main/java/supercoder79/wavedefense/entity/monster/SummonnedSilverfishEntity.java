@@ -7,10 +7,10 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.world.World;
 
-public class SummonedSilverfishEntity extends SilverfishEntity {
+public class SummonnedSilverfishEntity extends SilverfishEntity {
     private int lifeTicks = 400;
 
-    public SummonedSilverfishEntity(EntityType<? extends SilverfishEntity> entityType, World world) {
+    public SummonnedSilverfishEntity(EntityType<? extends SilverfishEntity> entityType, World world) {
         super(entityType, world);
         this.experiencePoints = 0;
     }

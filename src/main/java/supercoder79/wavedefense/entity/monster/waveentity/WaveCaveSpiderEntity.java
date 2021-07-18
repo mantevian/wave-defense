@@ -4,10 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.mob.CaveSpiderEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.world.World;
 import supercoder79.wavedefense.entity.MonsterModifier;
 import supercoder79.wavedefense.entity.WaveEntity;
@@ -15,8 +12,6 @@ import supercoder79.wavedefense.entity.goal.MoveTowardGameCenterGoal;
 import supercoder79.wavedefense.entity.monster.classes.CaveSpiderClasses;
 import supercoder79.wavedefense.entity.monster.classes.MonsterClass;
 import supercoder79.wavedefense.game.WdActive;
-
-import java.util.Random;
 
 public class WaveCaveSpiderEntity extends CaveSpiderEntity implements WaveEntity {
     private final WdActive game;

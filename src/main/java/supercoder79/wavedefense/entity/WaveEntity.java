@@ -30,7 +30,7 @@ public interface WaveEntity {
     void setMod(MonsterModifier monsterModifier);
 
     MonsterModifier getMod();
-    
+
     Vec3d pos = Vec3d.ZERO;
 
     WdActive getGame();

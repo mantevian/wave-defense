@@ -4,12 +4,15 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import kdotjpg.opensimplex.OpenSimplexNoise;
+import net.minecraft.util.dynamic.RegistryLookupCodec;
+import net.minecraft.util.math.noise.SimplexNoiseSampler;
 import supercoder79.wavedefense.map.biome.impl.*;
 
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryLookupCodec;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.source.BiomeSource;
+import supercoder79.wavedefense.map.gen.WdWorldGenRandom;
 
 public final class FakeBiomeSource extends BiomeSource {
 	public static final Codec<FakeBiomeSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -20,18 +23,18 @@ public final class FakeBiomeSource extends BiomeSource {
 	private final Registry<Biome> biomeRegistry;
 	private final long seed;
 
-	private final OpenSimplexNoise temperatureNoise;
-	private final OpenSimplexNoise rainfallNoise;
-	private final OpenSimplexNoise roughnessNoise;
+	private final SimplexNoiseSampler temperatureNoise;
+	private final SimplexNoiseSampler rainfallNoise;
+	private final SimplexNoiseSampler roughnessNoise;
 
 	public FakeBiomeSource(Registry<Biome> biomeRegistry, long seed) {
 		super(ImmutableList.of());
 		this.biomeRegistry = biomeRegistry;
 		this.seed = seed;
 
-		temperatureNoise = new OpenSimplexNoise(seed + 79);
-		rainfallNoise = new OpenSimplexNoise(seed - 79);
-		roughnessNoise = new OpenSimplexNoise(seed);
+		temperatureNoise = new SimplexNoiseSampler(new WdWorldGenRandom(seed + 79));
+		rainfallNoise = new SimplexNoiseSampler(new WdWorldGenRandom(seed - 79));
+		roughnessNoise = new SimplexNoiseSampler(new WdWorldGenRandom(seed));
 	}
 
 	@Override

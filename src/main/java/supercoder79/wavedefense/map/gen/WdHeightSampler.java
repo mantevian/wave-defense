@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import it.unimi.dsi.fastutil.HashCommon;
-import kdotjpg.opensimplex.OpenSimplexNoise;
+import net.minecraft.util.math.noise.SimplexNoiseSampler;
 import supercoder79.wavedefense.map.biome.BiomeGen;
 import supercoder79.wavedefense.map.biome.FakeBiomeSource;
 
@@ -34,9 +34,9 @@ public final class WdHeightSampler {
     // Not thread safe.
     private static final class HeightCache {
         private static final int CACHE_SIZE = 1024, MASK = 1023;
-        private final OpenSimplexNoise ridgeNoise;
-        private final OpenSimplexNoise baseNoise;
-        private final OpenSimplexNoise detailNoise;
+        private final SimplexNoiseSampler ridgeNoise;
+        private final SimplexNoiseSampler baseNoise;
+        private final SimplexNoiseSampler detailNoise;
 
         private final WdPath path;
         private final ThreadLocal<BiomeCache> biomeCache;
@@ -51,9 +51,9 @@ public final class WdHeightSampler {
             this.seed = seed;
 
             Random random = new Random(seed);
-            this.ridgeNoise = new OpenSimplexNoise(random.nextLong());
-            this.baseNoise = new OpenSimplexNoise(random.nextLong());
-            this.detailNoise = new OpenSimplexNoise(random.nextLong());
+            this.ridgeNoise = new SimplexNoiseSampler(new WdWorldGenRandom());
+            this.baseNoise = new SimplexNoiseSampler(new WdWorldGenRandom());
+            this.detailNoise = new SimplexNoiseSampler(new WdWorldGenRandom());
 
             this.keys = new long[CACHE_SIZE];
             Arrays.fill(this.keys, Long.MIN_VALUE);
@@ -101,11 +101,11 @@ public final class WdHeightSampler {
             double distanceToPath = Math.sqrt(distanceToPath2);
 
             // Create base terrain
-            double noise = this.baseNoise.eval(x / 256.0, z / 256.0);
+            double noise = this.baseNoise.sample(x / 256.0, z / 256.0);
             noise *= noise > 0 ? upperNoiseFactor : lowerNoiseFactor;
 
             // Add small details to make the terrain less rounded
-            noise += this.detailNoise.eval(x / 20.0, z / 20.0) * detailFactor;
+            noise += this.detailNoise.sample(x / 20.0, z / 20.0) * detailFactor;
 
             double ridgeFactor = Math.min(
                     Math.pow(distanceToPath / 64.0, 3.0),
@@ -113,7 +113,7 @@ public final class WdHeightSampler {
             );
 
             if (ridgeFactor > 1e-2) {
-                double ridgeNoise = this.ridgeNoise.eval(x / 512.0, z / 512.0);
+                double ridgeNoise = this.ridgeNoise.sample(x / 512.0, z / 512.0);
                 ridgeNoise = 1.0 - Math.abs(ridgeNoise);
                 ridgeNoise = Math.pow(ridgeNoise, 5.0);
 
